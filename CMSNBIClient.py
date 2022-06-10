@@ -286,7 +286,7 @@ class CMS_NBI_Client:
         cwd = os.getcwd()
         cf_path = os.path.join(cwd, 'cms_nbi_config.json')
 
-        def config_file_updater(data=self.cms_nbi_connect_config, config_file_path=cf_path):
+        def config_file_updater(data=self.cms_nbi_config, config_file_path=cf_path):
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir
             with open(config_file_path, 'w') as config_file:
@@ -304,9 +304,9 @@ class CMS_NBI_Client:
         if isinstance(cms_node_name, str) and len(cms_node_name) >= 1:
             # checks to make sure the cms_node_name is a string and at least 1 char long
             # updated the config in memory then on disk
-            self.cms_nbi_connect_config['cms_nodes'][cms_node_name] = new_cms_node
+            self.cms_nbi_config['cms_nodes'][cms_node_name] = new_cms_node
             new_cms_config = {}
-            new_cms_config['config'] = self.cms_nbi_connect_config
+            new_cms_config['config'] = self.cms_nbi_config
             config_file_updater(data=new_cms_config)
 
 
