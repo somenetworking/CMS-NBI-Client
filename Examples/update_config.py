@@ -49,4 +49,4 @@ client.update_config(pass_wd='example_pass', user_nm='example_user', cms_node_na
 #                   'profile': '/restnbi/profiles?profileType=',
 #                   'region': '/restnbi/region',
 #                   'topology': '/restnbi/toplinks'}}
-# Currently only adding a node is available, will add create/update(merge)/delete functionality later
+# Currently only adding(create) a node is available, will add create/update(merge)/delete functionality later

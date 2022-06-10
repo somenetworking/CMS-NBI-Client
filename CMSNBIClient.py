@@ -1156,7 +1156,7 @@ class Create_E7_Data():
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='', us_sdber_rate_nb='', low_rx_opt_pwr_ne_thresh_nb='', high_rx_opt_pwr_ne_thresh_nb='', default_ll=bool, battery_present_state='', pse_max_power_budget_nb='', poe_class_control_state=''):
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='', us_sdber_rate_nb='', low_rx_opt_pwr_ne_thresh_nb='', high_rx_opt_pwr_ne_thresh_nb='', default_ll_conf=True, battery_present_state='', pse_max_power_budget_nb='', poe_class_control_state=''):
         """
         Description
         -----------
@@ -1209,8 +1209,8 @@ class Create_E7_Data():
         :param high_rx_opt_pwr_ne_thresh_nb:
         :type high_rx_opt_pwr_ne_thresh_nb:str
 
-        :param default_ll:
-        :type default_ll:bool
+        :param default_ll_conf: This is used to
+        :type default_ll_conf:bool
 
         :param battery_present_state:
         :type battery_present_state:str
@@ -1223,12 +1223,14 @@ class Create_E7_Data():
 
         :return:
         """
-        if default_ll:
-            ll_config = """"""
+        if default_ll_conf:
+            extra_conf = """"""
         else:
-            ll_config = f"""<us-sdber-rate>{us_sdber_rate_nb}</us-sdber-rate>
+            extra_conf = f"""<us-sdber-rate>{us_sdber_rate_nb}</us-sdber-rate>
                             <low-rx-opt-pwr-ne-thresh>{low_rx_opt_pwr_ne_thresh_nb}</low-rx-opt-pwr-ne-thresh>
-                            <high-rx-opt-pwr-ne-thresh>{high_rx_opt_pwr_ne_thresh_nb}</high-rx-opt-pwr-ne-thresh>"""
+                            <high-rx-opt-pwr-ne-thresh>{high_rx_opt_pwr_ne_thresh_nb}</high-rx-opt-pwr-ne-thresh>
+                            <pse-max-power-budget>{pse_max_power_budget_nb}</pse-max-power-budget>
+                            <poe-class-control>{poe_class_control_state}</poe-class-control>"""
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -1261,10 +1263,8 @@ class Create_E7_Data():
                                                         <ontprof>{ontprof_id}</ontprof>
                                                     </id>
                                                 </ontprof>
-                                                {ll_config}
+                                                {extra_conf}
                                                 <battery-present>{battery_present_state}</battery-present>
-                                                <pse-max-power-budget>{pse_max_power_budget_nb}</pse-max-power-budget>
-                                                <poe-class-control>{poe_class_control_state}</poe-class-control>
                                             </object>
                                         </top>
                                     </config>
