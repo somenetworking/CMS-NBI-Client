@@ -1,7 +1,6 @@
 # IMPORT STATEMENTS
 import requests
 import json
-import logging
 import os
 import xmltodict
 import pydash
@@ -249,6 +248,7 @@ class CMS_NBI_Client:
                 if resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '0':
                     # Resultcode is 0, the logout was successful, this will call a __del__ and destroy the CMS_NBI_Client object in memory
                     # it will also return tuple with True and ResultCode
+                    self.session_id = None
                     return True, ''
                 elif resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '2':
                     # Resultcode is 2, the logout was unsuccessful, this means that the one of the required variables were incorrect,
@@ -635,19 +635,19 @@ class Query_E7_Data():
                     if isinstance(self.resp_system_children_discont, list):
                         for resp in resp_dict: self.resp_system_children_discont.append(resp)
                         resp_system_discont = self.resp_system_children_discont
-                        self.resp_system_children_discont = None
+                        del self.resp_system_children_discont
                         return resp_system_discont
                 except:
                     self.resp_system_children_discont = []
                     self.resp_system_children_discont.append(resp_dict)
                     resp_system_discont = self.resp_system_children_discont
-                    self.resp_system_children_discont = None
+                    del self.resp_system_children_discont
                     return resp_system_discont
 
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
                 if resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children'] == None:
                     resp_system_discont = self.resp_system_children_discont
-                    self.resp_system_children_discont = None
+                    del self.resp_system_children_discont
                     return resp_system_discont
                 else:
                     return response
@@ -1156,7 +1156,7 @@ class Create_E7_Data():
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='', us_sdber_rate_nb='', low_rx_opt_pwr_ne_thresh_nb='', high_rx_opt_pwr_ne_thresh_nb='', default_ll_conf=True, battery_present_state='', pse_max_power_budget_nb='', poe_class_control_state=''):
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id=''):
         """
         Description
         -----------
@@ -1194,43 +1194,15 @@ class Create_E7_Data():
         :param ont_desc: Identifies the ONT Description
         :type ont_desc:str
 
-        :param ontpwe3prof_id:
+        :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface. as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontpwe3prof_id:str
 
-        :param ontprof_id:
+        :param ontprof_id: identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
-        :param us_sdber_rate_nb:
-        :type us_sdber_rate_nb:str
-
-        :param low_rx_opt_pwr_ne_thresh_nb:
-        :type low_rx_opt_pwr_ne_thresh_nb:str
-
-        :param high_rx_opt_pwr_ne_thresh_nb:
-        :type high_rx_opt_pwr_ne_thresh_nb:str
-
-        :param default_ll_conf: This is used to
-        :type default_ll_conf:bool
-
-        :param battery_present_state:
-        :type battery_present_state:str
-
-        :param pse_max_power_budget_nb:
-        :type pse_max_power_budget_nb:str
-
-        :param poe_class_control_state:
-        :type poe_class_control_state:str
-
-        :return:
+        :return: ont() returns a response.response object on a failed call, and a nested dict on a successful call
         """
-        if default_ll_conf:
-            extra_conf = """"""
-        else:
-            extra_conf = f"""<us-sdber-rate>{us_sdber_rate_nb}</us-sdber-rate>
-                            <low-rx-opt-pwr-ne-thresh>{low_rx_opt_pwr_ne_thresh_nb}</low-rx-opt-pwr-ne-thresh>
-                            <high-rx-opt-pwr-ne-thresh>{high_rx_opt_pwr_ne_thresh_nb}</high-rx-opt-pwr-ne-thresh>
-                            <pse-max-power-budget>{pse_max_power_budget_nb}</pse-max-power-budget>
-                            <poe-class-control>{poe_class_control_state}</poe-class-control>"""
+
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -1263,8 +1235,6 @@ class Create_E7_Data():
                                                         <ontprof>{ontprof_id}</ontprof>
                                                     </id>
                                                 </ontprof>
-                                                {extra_conf}
-                                                <battery-present>{battery_present_state}</battery-present>
                                             </object>
                                         </top>
                                     </config>
@@ -1292,7 +1262,7 @@ class Create_E7_Data():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-
+            return resp_dict
 
 class Update_E7_Data():
 
