@@ -7,7 +7,6 @@ import pydash
 from pprint import pprint
 # IMPORT STATEMENTS
 
-
 class CMS_NBI_Client:
     """
     Description
@@ -102,7 +101,7 @@ class CMS_NBI_Client:
         :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
         :type http_timeout:int
 
-        :return: login_netconf() returns a tuple with (False,request.post object) or (True,'')
+        :return: login_netconf() returns a tuple with (False,requests.models.Response object) or (True,'')
         """
 
         if isinstance(self.cms_netconf_url, type(None)):
@@ -199,7 +198,7 @@ class CMS_NBI_Client:
         :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
         :type http_timeout:int
 
-        :return: logout_netconf() returns a tuple with (False,request.post object) or (True,'')
+        :return: logout_netconf() returns a tuple with (False,requests.models.Response object) or (True,'')
         """
         if isinstance(message_id, type(None)) and isinstance(self.message_id, type(None)):
             self.message_id = '1'
@@ -367,7 +366,7 @@ class Query_E7_Data():
         :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
         :type http_timeout:int
 
-        :return: system() will return a nested dict on a successful call and a response.response() object on a failed call
+        :return: system() will return a nested dict on a successful call and a requests.models.Response object on a failed call
         """
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -434,7 +433,7 @@ class Query_E7_Data():
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
-        :return: system_children() returns a response.response() object on a failed call, and a nested dict on a successful call
+        :return: system_children() returns a requests.models.Response object on a failed call, and a nested dict on a successful call
         """
         if 'type' in after_filter.keys():
             _after = f"""\n<after>\n<type>{after_filter['type']}</type>\n<id>\n<{after_filter['type'].lower()}>{after_filter['id']}<{'/'+after_filter['type'].lower()}>\n</id>\n</after>\n"""
@@ -511,13 +510,13 @@ class Query_E7_Data():
                     if isinstance(self.resp_system_children, list):
                         self.resp_system_children.extend(resp_dict)
                         resp_system_children = self.resp_system_children
-                        self.resp_system_children = None
+                        del self.resp_system_children
                         return resp_system_children
                 except:
                     self.resp_system_children = []
                     self.resp_system_children.extend(resp_dict)
                     resp_system_children = self.resp_system_children
-                    self.resp_system_children = None
+                    del self.resp_system_children
                     return resp_system_children
             else:
                 return response
@@ -548,7 +547,7 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
-        :return: system_children_discont() will return a response.response() object on a failed call, and a list of nested dict on a successful call
+        :return: system_children_discont() will return a requests.models.Response object on a failed call, and a list of nested dict on a successful call
         """
         if 'discont' in after_filter.keys():
             after_filter = f"""<after>
@@ -680,7 +679,7 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
-        :return: system_children_ontprof() returns a response.response() object on a failed query and a nested dict on a successful query
+        :return: system_children_ontprof() returns a requests.models.Response object on a failed query and a nested dict on a successful query
         """
         if 'ontprof' in after_filter.keys():
             _after_filter = f"""<after>
@@ -765,17 +764,17 @@ class Query_E7_Data():
                         if len(resp_dict) > 1:
                             self.resp_system_children_ontprof.extend(resp_dict)
                             resp_system_children_ontprof = self.resp_system_children_ontprof
-                            self.resp_system_children_ontprof = None
+                            del self.resp_system_children_ontprof
                         else:
                             self.resp_system_children_ontprof.append(resp_dict)
                             resp_system_children_ontprof = self.resp_system_children_ontprof
-                            self.resp_system_children_ontprof = None
+                            del self.resp_system_children_ontprof
                         return resp_system_children_ontprof
                 except:
                     self.resp_system_children_ontprof = []
                     self.resp_system_children_ontprof.append(resp_dict)
                     resp_system_children_ontprof = self.resp_system_children_ontprof
-                    self.resp_system_children_ontprof = None
+                    del self.resp_system_children_ontprof
                     return resp_system_children_ontprof
             else:
                 return response
@@ -806,7 +805,7 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
-        :return: system_children_ontpwe3prof() returns a response.response() object on a failed query and a list of nested dict on a successful query
+        :return: system_children_ontpwe3prof() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
         """
         if '' not in after_filter.keys():
             pass
@@ -889,17 +888,17 @@ class Query_E7_Data():
                         if len(resp_dict) > 1:
                             self.resp_system_children_ontpwe3prof.extend(resp_dict)
                             resp_system_children_ontpwe3prof = self.resp_system_children_ontpwe3prof
-                            self.resp_system_children_ontpwe3prof = None
+                            del self.resp_system_children_ontpwe3prof
                         else:
                             self.resp_system_children_ontpwe3prof.append(resp_dict)
                             resp_system_children_ontpwe3prof = self.resp_system_children_ontpwe3prof
-                            self.resp_system_children_ontpwe3prof = None
+                            del self.resp_system_children_ontpwe3prof
                         return resp_system_children_ontpwe3prof
                 except:
                     self.resp_system_children_ontpwe3prof = []
                     self.resp_system_children_ontpwe3prof.append(resp_dict)
                     resp_system_children_ontpwe3prof = self.resp_system_children_ontpwe3prof
-                    self.resp_system_children_ontpwe3prof = None
+                    del self.resp_system_children_ontpwe3prof
                     return resp_system_children_ontpwe3prof
             else:
                 return response
@@ -927,7 +926,7 @@ class Query_E7_Data():
         :param ontprof_id: this parameter identifies the ID of a pre-defined local ONT profile, which can be a custom profile from 1 to 50, or one of the default profile IDs listed in E7 GPON ONT Profile IDs, as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
-        :return: ontprof() will return a requests.request object on a failed query, and a dict on a successful query
+        :return: ontprof() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -999,7 +998,7 @@ class Query_E7_Data():
         :param ont_sn: this parameter is the SN of the ont being requested, for calix ONTs this is formed by CXNK+
         :type ont_sn:str
 
-        :return: discont() will return a requests.request object on a failed query, and a dict on a successful query
+        :return: discont() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -1068,7 +1067,7 @@ class Query_E7_Data():
         :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface, as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontpwe3prof_id:str
 
-        :return: ontpwe3prof() will return a requests.request object on a failed query, and a dict on a successful query
+        :return: ontpwe3prof() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -1114,6 +1113,149 @@ class Query_E7_Data():
             resp_dict = xmltodict.parse(response.content)
             if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
                 return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
+
+    def show_ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, action_args={' ': ''}, after_filter={' ': ''}):
+        """
+        Description
+        -----------
+        function show_ont() performs the CLI command show-ont for the provided network_nm(e7_node) through a http/xml query
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param action_args: similar to attr_filter param in other query functions, action_args acts as a filter for the query
+        :type action_args:dict
+
+        :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type after_filter:dict
+
+        :return: show_ont() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
+        """
+        if ' ' not in after_filter.keys():
+            _after_filter = f"""<after>
+                                    <type>Ont</type>
+                                    <id>
+                                        <ont>{after_filter['ont']}</ont>
+                                    </id>
+                                </after>"""
+        else:
+            _after_filter = """"""
+
+        valid_action_args = ['admin', 'serno', 'reg-id', 'pon', 'ontprof', 'ont']
+        if ' ' not in action_args.keys():
+            _action_args = """"""
+            for arg in action_args.items():
+                if arg[0] in valid_action_args:
+                    if arg[0] == 'pon':
+                        _action_args = _action_args + f"""<linked-pon>
+                                                          <type>GponPort</type>
+                                                          <id>
+                                                          <shelf>{arg[1]['shelf']}</shelf>
+                                                          <card>{arg[1]['card']}</card>
+                                                          <gponport>{arg[1]['gponport']}</gponport>
+                                                          </id>
+                                                          </linked-pon>"""
+                    elif arg[0] == 'ontprof':
+                        _action_args = _action_args + f"""<ontprof>
+                                                          <type>OntProf</type>
+                                                          <id>
+                                                          <ontprof>{arg[1]}</ontprof>
+                                                          </id>
+                                                          </ontprof>"""
+                    elif arg[0] == 'ont':
+                        _action_args = _action_args + f"""<ont>
+                                                          <type>Ont</type>
+                                                          <id>
+                                                          <ont>{arg[1]}</ont>
+                                                          </id>
+                                                          </ont>"""
+                    else:
+                        _action_args = _action_args + f"""<{arg[0]}>{arg[1]}<{arg[0]}>"""
+        else:
+            _action_args = """"""
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <action>
+                                    <action-type>show-ont</action-type>
+                                    <action-args>
+                                    {_action_args}
+                                    {_after_filter}
+                                    </action-args>
+                                </action>
+                            </rpc>
+                        </soapenv:Body>
+                    </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
+                _after_filter_ = resp_dict['get']['object']['id']
+                try:
+                    if isinstance(self.resp_show_ont, list):
+                        self.resp_show_ont.append(resp_dict)
+                except:
+                    self.resp_show_ont = []
+                    self.resp_show_ont.append(resp_dict)
+                return self.show_ont(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm, http_timeout=http_timeout, after_filter=_after_filter_, action_args=action_args)
+
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
+                try:
+                    if isinstance(self.resp_show_ont, list):
+                        self.resp_show_ont.append(resp_dict)
+                        resp_show_ont = self.resp_show_ont
+                        del self.resp_show_ont
+                        return resp_show_ont
+                except:
+                    self.resp_show_ont = []
+                    self.resp_show_ont.append(resp_dict)
+                    resp_show_ont = self.resp_show_ont
+                    del self.resp_show_ont
+                    return resp_show_ont
+            
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply'):
+                try:
+                    if isinstance(self.resp_show_ont, list):
+                        resp_show_ont = self.resp_show_ont
+                        del self.resp_show_ont
+                        return resp_show_ont
+                except:
+                    return response
+
             else:
                 return response
 
@@ -1263,6 +1405,7 @@ class Create_E7_Data():
         else:
             resp_dict = xmltodict.parse(response.content)
             return resp_dict
+
 
 class Update_E7_Data():
 
