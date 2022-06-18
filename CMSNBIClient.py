@@ -645,9 +645,14 @@ class Query_E7_Data():
 
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
                 if resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children'] == None:
-                    resp_system_discont = self.resp_system_children_discont
-                    del self.resp_system_children_discont
-                    return resp_system_discont
+                    try:
+                        isinstance(self.resp_system_children_discont, list)
+                        resp_system_discont = self.resp_system_children_discont
+                        del self.resp_system_children_discont
+                        return resp_system_discont
+                    except:
+                        return response
+
                 else:
                     return response
             else:
@@ -689,7 +694,7 @@ class Query_E7_Data():
                                     </id>
                                 </after>"""
         else:
-            _after_filter = ''
+            _after_filter = """"""
 
         valid_attr = ['name', 'vendor', 'model', 'pots', 'feth', 'geth', 'hpnaeth', 'ds1', 'rfvid', 'hotrfvid', 'eth-oam-capable', 'convert-mcast-capable', 'rg', 'fb', 'default-to-rg']
         if '' not in attr_filter.keys():
@@ -1154,7 +1159,7 @@ class Query_E7_Data():
         else:
             _after_filter = """"""
 
-        valid_action_args = ['admin', 'serno', 'reg-id', 'pon', 'ontprof', 'ont']
+        valid_action_args = ['admin', 'serno', 'reg-id', 'subscr-id', 'pon', 'ontprof', 'ont']
         if ' ' not in action_args.keys():
             _action_args = """"""
             for arg in action_args.items():
@@ -1183,7 +1188,7 @@ class Query_E7_Data():
                                                           </id>
                                                           </ont>"""
                     else:
-                        _action_args = _action_args + f"""<{arg[0]}>{arg[1]}<{arg[0]}>"""
+                        _action_args = _action_args + f"""<{arg[0]}>{arg[1]}</{arg[0]}>"""
         else:
             _action_args = """"""
 
@@ -1404,7 +1409,10 @@ class Create_E7_Data():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            return resp_dict
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
 
 
 class Update_E7_Data():
