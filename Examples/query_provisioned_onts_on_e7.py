@@ -32,6 +32,7 @@ query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_n
 # ---------LIST OF FILTERS----------
 # admin:['enabled', 'enabled-no-alarms', 'disabled']
 # serno:'123456'
+# subscr-id: '99999'
 # reg-id:
 # pon:{'shelf': '1', 'card': '1', 'gponport': '1'}
 # ontprof: '1'
@@ -64,6 +65,12 @@ query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_n
                        network_nm='NTWK-Example Network Name',
                        http_timeout=5,
                        action_args={'serno': '123456'})
+
+# In this example we will pull the stats for the specified ONT by its provisioned subscriber-id
+query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                       network_nm='NTWK-Example Network Name',
+                       http_timeout=5,
+                       action_args={'subscr-id': '99999999'})
 
 # In this example we will pull the stats for the specified ONT by its ONT ID
 query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
