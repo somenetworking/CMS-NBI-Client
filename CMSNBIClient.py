@@ -1264,6 +1264,32 @@ class Query_E7_Data():
             else:
                 return response
 
+    def show_dhcp_leases(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, action_args={' ': ''}, after_filter={' ': ''}):
+
+        if ' ' not in action_args.keys():
+            pass
+        else:
+            _action_args = """"""
+
+        if ' ' not in after_filter.keys():
+            pass
+        else:
+            _after_filter = """"""
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <action>
+                                    <action-type>show-dhcp-leases</action-type>
+                                    <action-args>
+                                    {_action_args}
+                                    {_after_filter}
+                                    </action-args>
+                                </action>
+                            </rpc>
+                        </soapenv:Body>
+                    </soapenv:Envelope>"""
+
 
 class Create_E7_Data():
 
@@ -1575,7 +1601,7 @@ class Delete_E7_Data():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict,'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
                 return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
             else:
                 return response
@@ -1583,8 +1609,70 @@ class Delete_E7_Data():
 
 class Query_Rest_Data():
 
-    def __init__(self):
-        pass
+    def __init__(self, cms_nbi_connect_object):
+        """
+        Description
+        -----------
+        Class (Query_Rest_Data) is the REST query constructor/posting class for the CMS REST NBI
 
+        Attributes
+        ----------
+        :var self.cms_nbi_connect_object: accepts object created by the CMS_NBI_Client
+        :type self.cms_nbi_connect_object: object
+        """
+        # Test if the provided object is of a CMS_NBI_Client instance
 
+        if isinstance(cms_nbi_connect_object, CMS_NBI_Client):
+            pass
+        else:
+            raise ValueError(f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(cms_nbi_connect_object)}""")
+        self.cms_nbi_connect_object = cms_nbi_connect_object
 
+    def device(self, protocol='http', port='8080', cms_user_nm='rootgod', cms_user_pass='root', cms_node_ip='localhost', device_type='', http_timeout=1):
+        """
+        Description
+        -----------
+        function device() performs a HTTP GET utilizing the request library to query the CMS REST NBI for the specified devices, as explained in pg.378 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+
+        Parameter(s)
+        ------------
+        :param protocol: this var determines the protocol to use when building the CMS REST NBI URL, CMS supports http/s as described in pg.14 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type protocol:str
+
+        :param port: this var determines the TCP/UDP port to use when building the CMS REST NBI URL, this will be dependent on whether HTTP or HTTPS was chosen, this is described in pg.14 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type port:str
+
+        :param cms_user_nm: this var contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param cms_user_pass: this var contains the plain text password for the provided username, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_pass:str
+
+        :param cms_node_ip: this var contains the FQDN/IP of the targeted CMS node
+        :type cms_node_ip:str
+
+        :param device_type: device type is a str identifying the targeted device type, this is explained further in pg.378 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type device_type:str
+
+        :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
+        :type http_timeout:int
+
+        :return: device() returns a list of nested dicts on a successful query and a request.models.Requests object on failed queries
+        """
+        cms_rest_url = f"""{protocol}://{cms_node_ip}:{port}{self.cms_nbi_connect_object.cms_nbi_config['cms_rest_uri']['devices']}{device_type}&limit=9999"""
+
+        payload = ""
+
+        headers = {'Content-Type': 'application/json',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        try:
+            response = requests.get(url=cms_rest_url, headers=headers, data=payload, auth=(cms_user_nm, cms_user_pass), timeout=http_timeout)
+        except requests.exceptions.Timeout as e:
+            # debating between exit and raise will update in future
+            exit(f"{e}")
+
+        if response.status_code == 200:
+            return response.json()['data']
+        else:
+            return response
