@@ -1,6 +1,6 @@
 # CMS-NBI-CLIENT
 
-CMS-NBI-CLIENT is a python package in the works, to interact with Calix Management System(CMS). 
+CMS-NBI-CLIENT is a python package in the works, to interact with Calix Management System(CMS) NBIs(Northbound Interfaces). 
 
 
 ## Resources
