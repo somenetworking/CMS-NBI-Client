@@ -1265,14 +1265,76 @@ class Query_E7_Data():
                 return response
 
     def show_dhcp_leases(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, action_args={' ': ''}, after_filter={' ': ''}):
+        """
+        Description
+        -----------
+        function show_dhcp_leases() performs the CLI command show-dhcp-leases for the provided network_nm(e7_node) through a http/xml query
 
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param action_args: similar to attr_filter param in other query functions, action_args acts as a filter for the query
+        :type action_args:dict
+
+        :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type after_filter:dict
+
+        :return: show_dhcp_leases() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
+        """
+        valid_action_args = ['vlan', 'ontethge', 'ontethfe', 'ethintf', 'gponport']
         if ' ' not in action_args.keys():
-            pass
+            _action_args = """"""
+            for arg in action_args.items():
+                if arg[0] in valid_action_args:
+                    if 'vlan' in arg[0]:
+                        _action_args += f"""<vlan>{arg[1]}</vlan>"""
+                    elif 'ontethge' in arg[0]:
+                        _action_args += f"""<object>
+                                                <type>OntEthGe</type>
+                                                <id>
+                                                    <ont>{arg[1]['ont']}</ont>
+                                                    <ontslot>3</ontslot>
+                                                    <ontethge>{arg[1]['ontethge']}</ontethge>
+                                                </id>
+                                            </object>"""
+                    elif 'ontethfe' in arg[0]:
+                        _action_args += f"""<object>
+                                                <type>OntEthFe</type>
+                                                <id>
+                                                    <ont>{arg[1]['ont']}</ont>
+                                                    <ontslot>5</ontslot>
+                                                    <ontethfe>{arg[1]['ontethfe']}</ontethfe>
+                                                </id>
+                                            </object>"""
+                    elif 'gponport' in arg[0]:
+                        _action_args += f"""<object>
+                                                <type>GponPort</type>
+                                                <id>
+                                                    <shelf>{arg[1]['shelf']}</shelf>
+                                                    <card>{arg[1]['card']}</card>
+                                                    <gponport>{arg[1]['gponport']}</gponport>
+                                                </id>
+                                            </object>"""
+                    else:
+                        pass
+                else:
+                    pass
         else:
             _action_args = """"""
 
         if ' ' not in after_filter.keys():
-            pass
+            _after_filter = f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
         else:
             _after_filter = """"""
 
@@ -1290,6 +1352,55 @@ class Query_E7_Data():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['entry']
+                _after_filter_ = resp_dict[len(resp_dict)-1]
+                try:
+                    if isinstance(self.resp_show_dhcp_leases, list):
+                        self.resp_show_dhcp_leases.extend(resp_dict)
+                except NameError:
+                    self.resp_show_dhcp_leases = []
+                    self.resp_show_dhcp_leases.extend(resp_dict)
+                return self.show_dhcp_leases(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm, http_timeout=http_timeout, action_args=action_args, after_filter=_after_filter_)
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.entry'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['entry']
+                try:
+                    if isinstance(self.resp_show_dhcp_leases, list):
+                        if isinstance(resp_dict, list):
+                            self.resp_show_dhcp_leases.extend(resp_dict)
+                        else:
+                            self.resp_show_dhcp_leases.append(resp_dict)
+                except NameError:
+                    self.resp_show_dhcp_leases = []
+                    if isinstance(resp_dict, list):
+                        self.resp_show_dhcp_leases.extend(resp_dict)
+                    else:
+                        self.resp_show_dhcp_leases.append(resp_dict)
+                resp = self.resp_show_dhcp_leases
+                del self.resp_show_dhcp_leases
+                return resp
+            else:
+                return response
 
 class Create_E7_Data():
 
