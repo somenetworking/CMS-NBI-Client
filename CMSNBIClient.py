@@ -1326,6 +1326,15 @@ class Query_E7_Data():
                                                     <gponport>{arg[1]['gponport']}</gponport>
                                                 </id>
                                             </object>"""
+                    elif 'ethintf' in arg[0]:
+                        _action_args += f"""<object>
+                                                <type>EthIntf</type>
+                                                <id>
+                                                    <shelf>{arg[1]['shelf']}</shelf>
+                                                    <card>{arg[1]['card']}</card>
+                                                    <ethintf>{arg[1]['ethintf']}</ethintf>
+                                                </id>
+                                            </object>"""
                     else:
                         pass
                 else:

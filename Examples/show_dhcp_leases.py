@@ -73,3 +73,14 @@ query_e7_data.show_dhcp_leases(message_id='1',
                                action_args={'gponport': {'shelf': '1',
                                                          'card': '1',
                                                          'gponport': '1'}})
+
+# QUERY ON A SPECIFIC EthIntf
+# you will need to pass the shelve-id, card-id, and EthIntf-id
+# This example would be for EthIntf with an id of 1/1/103
+query_e7_data.show_dhcp_leases(message_id='1',
+                               cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example_Name',
+                               http_timeout=5,
+                               action_args={'ethintf': {'shelf': '1',
+                                                         'card': '1',
+                                                         'ethintf': '103'}})
