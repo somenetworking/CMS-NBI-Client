@@ -388,7 +388,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -466,7 +466,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -600,7 +600,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -734,7 +734,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
@@ -856,7 +856,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
@@ -959,7 +959,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS-NBI-CLIENT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -1028,7 +1028,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -1099,7 +1099,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
@@ -1209,7 +1209,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
@@ -1364,7 +1364,7 @@ class Query_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
@@ -1539,7 +1539,7 @@ class Create_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
@@ -1704,7 +1704,7 @@ class Delete_E7_Data():
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
-        if 'http' in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
