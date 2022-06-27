@@ -1411,6 +1411,7 @@ class Query_E7_Data():
             else:
                 return response
 
+
 class Create_E7_Data():
 
     def __init__(self, cms_nbi_connect_object):
@@ -1640,7 +1641,7 @@ class Delete_E7_Data():
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', force=''):
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', force='false'):
         """
         Description
         -----------
