@@ -908,6 +908,124 @@ class Query_E7_Data():
             else:
                 return response
 
+    def system_children_vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, after_filter={'': ''}, attr_filter={'': ''}):
+        """
+        Description
+        -----------
+        function system_children_vlan() performs a http/xml query for the provided network_nm(e7_node) requesting the <Vlan> children of the <System> object type
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type after_filter:dict
+
+        :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type attr_filter:dict
+
+        :return: system_children_vlan() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
+        """
+        # After Filter Parser
+        if '' not in after_filter.keys():
+            _after_filter = f"""<after>{xmltodict.unparse(after_filter,full_document=False)}</after>"""
+        else:
+            _after_filter = """"""
+
+        # Attr-Filter Parser
+        if '' not in attr_filter.keys():
+            _attr_filter = f"""<attr-filter>{xmltodict.unparse(attr_filter,full_document=False)}</attr-filter>"""
+        else:
+            _attr_filter = """"""
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <get-config>
+                                    <source>
+                                        <running/>
+                                    </source>
+                                    <filter type="subtree">
+                                        <top>
+                                            <object>
+                                                <type>System</type>
+                                                <id/>
+                                                <children>
+                                                    <type>Vlan</type>
+                                                    {_after_filter}
+                                                    {_attr_filter}
+                                                    <attr-list>name igmp-mode igmp-prof dhcp-mode mac-force-forw ip-src-verify mac-learn ae-ont-discovery pon-tlan pon-hairpin igmp-pbit dhcp-svc-prof option82-enable eth-opt82prof gpon-opt82prof mobility pppoe-prof</attr-list>
+                                                </children>
+                                            </object>
+                                        </top>
+                                    </filter>
+                                </get-config>
+                            </rpc>
+                        </soapenv:Body>
+                    </soapenv:Envelope>"""
+
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                last_entry = {'type': 'Vlan', 'id': {'vlan': resp_dict[len(resp_dict)-1]['id']['vlan']['#text']}}
+                try:
+                    if isinstance(self.resp_system_children_vlan, list):
+                        self.resp_system_children_vlan.extend(resp_dict)
+                except:
+                    self.resp_system_children_vlan = []
+                    self.resp_system_children_vlan.extend(resp_dict)
+                return self.system_children_vlan(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm, http_timeout=http_timeout, after_filter=last_entry, attr_filter=attr_filter)
+
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                try:
+                    if isinstance(self.resp_system_children_vlan, list):
+                        if isinstance(resp_dict, list):
+                            self.resp_system_children_vlan.extend(resp_dict)
+                        else:
+                            self.resp_system_children_vlan.append(resp_dict)
+                except:
+                    self.resp_system_children_vlan = []
+                    if isinstance(resp_dict, list):
+                        self.resp_system_children_vlan.extend(resp_dict)
+                    else:
+                        self.resp_system_children_vlan.append(resp_dict)
+                resp = self.resp_system_children_vlan
+                del self.resp_system_children_vlan
+                return resp
+            else:
+                return response
+
     def ontprof(self,  message_id='1', cms_user_nm='rootgod', network_nm='', ontprof_id='', http_timeout=1):
         """
         Description
@@ -1095,6 +1213,78 @@ class Query_E7_Data():
                             </rpc>
                         </soapenv:Body>
                     </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
+
+    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', vlan_id='1', http_timeout=1):
+        """
+        Description
+        -----------
+        function vlan() performs a http/xml query for the provided network_nm(e7_node) requesting the <Vlan> object type specified by the vlan_id provided
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param vlan_id: Identifies the VLAN: 2 to 4093, excluding any reserved VLANs, as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type vlan_id:str
+
+        :return: vlan() will return a requests.models.Response object on a failed query, and a dict on a successful query
+        """
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <get-config>
+                                    <source>
+                                        <running/>
+                                    </source>
+                                <filter type="subtree">
+                                    <top>
+                                        <object>
+                                        <type>Vlan</type>
+                                            <id>
+                                                <vlan>{vlan_id}</vlan>
+                                            </id>
+                                        </object>
+                                    </top>
+                                </filter>
+                                </get-config>
+                            </rpc>
+                        </soapenv:Body>
+                       </soapenv:Envelope>"""
 
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
