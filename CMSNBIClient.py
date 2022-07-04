@@ -1006,7 +1006,7 @@ class Query_E7_Data():
                     self.resp_system_children_vlan.extend(resp_dict)
                 return self.system_children_vlan(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm, http_timeout=http_timeout, after_filter=last_entry, attr_filter=attr_filter)
 
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
                 resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
                 try:
                     if isinstance(self.resp_system_children_vlan, list):
@@ -1023,6 +1023,13 @@ class Query_E7_Data():
                 resp = self.resp_system_children_vlan
                 del self.resp_system_children_vlan
                 return resp
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
+                if isinstance(self.resp_system_children_vlan, list):
+                    resp = self.resp_system_children_vlan
+                    del self.resp_system_children_vlan
+                    return resp
+                else:
+                    return response
             else:
                 return response
 
@@ -1687,7 +1694,6 @@ class Create_E7_Data():
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
 
-
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
                             <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
@@ -1751,6 +1757,169 @@ class Create_E7_Data():
             else:
                 return response
 
+    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='', name='', igmp_mode='flood', vlanigmpprof_id='1', dhcp_mode='none', mac_force_forw='false', ip_src_verify='false', mac_learn='true', ae_ont_discovery='false', pon_tlan='false', pon_hairpin='false', igmp_pbit='pbit-4', dhcp_svc_profile={'dhcp-svc-prof': ''}, option82_enable='true', eth_opt82prof_id='2', gpon_opt82prof_id='1', mobility='false', pppoe_profile={'pppoe-prof': ''}):
+        """
+        Description
+        -----------
+        function vlan() performs a http/xml creation query for the provided network_nm(e7_node) requesting an <Vlan> object be created with the provided details
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param vlan_id: Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type vlan_id:str
+
+        :param name:Identifies the name of the VLAN. Spaces and special characters are permitted. as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type name:str
+
+        :param igmp_mode: Identifies the igmp_mode used by the e7 node to treat mcast traffic on the vlan, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type igmp_mode:str
+
+        :param vlanigmpprof_id: Numerical identifier for the local profile (1 to 20), The local IGMP profile ID can be viewed in the management interface. In the IGMP profile list, double-click a profile to view its ID above the Name field.  If <igmp-prof> is not specified, the systemdefault IGMP profile (1) is used.  this is described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type vlanigmpprof_id:str
+
+        :param dhcp_mode: this setting enables or disabled dhcp snooping on the vlan, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type dhcp_mode:str
+
+        :param mac_force_forw:this setting enables or disabled mac_force_forwarding on the vlan, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type mac_force_forw:str
+
+        :param ip_src_verify: enable or disables IP source verification (binding the IP and MAC addresses to the physical ONT Ethernet port), as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type ip_src_verify:str
+
+        :param mac_learn: enables or disables mac-learning on the vlan, "Only applicable for E7-20 and E7-2 standalone systems; Modular Chassis configurations only support MAC learning", as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type mac_learn:str
+
+        :param ae_ont_discovery: enables or disables ae-ont-discovery, (Only supported when DHCP snooping is enabled, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type ae_ont_discovery:str
+
+        :param pon_tlan: enables or disables pon-tlan perameter, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type pon_tlan:str
+
+        :param pon_hairpin:(Applicable for TLAN and T1/E3 PWE3 services) this allows for traffice to be hair-pin back to the same olt on a differing or same uni, this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type pon_hairpin:str
+
+        :param igmp_pbit: The P-bit value(pbit-0 through pbit-7) for IGMP traffic that passes through the system, allowing the traffic type to be treated differently as it passes through the network. this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type igmp_pbit:str
+
+        :param dhcp_svc_profile:Required for the configuration of DHCPv4 Proxy (Layer 3 DHCP Relay) on the client-side VLAN,The selected profile determines the DHCP Proxy Agent IP interface and IP address of the DHCP server(s). this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type dhcp_svc_profile:dict
+
+        :param option82_enable:Enables or disables Option 82/LDRA at the VLAN level
+        :type option82_enable:str
+
+        :param eth_opt82prof_id:Access Identifier Profile for Ethernet/xDSL subscribers, specifying the Circuit and Remote ID format for Option 82 content insertion, this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type eth_opt82prof_id:str
+
+        :param gpon_opt82prof_id:Access Identifier Profile for GPON subscribers, specifying the Circuit and Remote ID format for Option 82 content insertion, this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type gpon_opt82prof_id:str
+
+        :param mobility:Enables or disables the ability for client devices to move freely between different ONTs on the same PON or card. (Not supported across multiple cards, this is explained better in pg.338 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type mobility:str
+
+        :param pppoe_profile:Assign a previously-created PPPoE profile. When a PPPoE profile is selected, the DHCP features are disabled. Setting a VLAN PPPoE profile to “none” passes through all PPPoE traffic, transparently. If a PPPoE profile is used with PPPoE snoop, a list of all the active sessions and statistics are available, and the PPPoE stack is enabled, which passes through PPPoE traffic transparently as long as the Clients/BRAS are operating normally (illegal packets will be dropped),this is explained better in pg.338 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :type pppoe_profile:dict
+
+        :return: vlan() function will return a dict on a successfull call, and a request.Models.Response object on a failed call
+        """
+        if isinstance(pppoe_profile['pppoe-prof'], dict):
+            _pppoe_profile = xmltodict.unparse(pppoe_profile, full_document=False)
+        else:
+            _pppoe_profile = """<pppoe-prof></pppoe-prof>"""
+
+        if isinstance(dhcp_svc_profile['dhcp-svc-prof'], dict):
+            _dhcp_svc_prof_id = xmltodict.unparse(dhcp_svc_profile, full_document=False)
+        else:
+            _dhcp_svc_prof_id = """<dhcp-svc-prof></dhcp-svc-prof>"""
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <edit-config>
+                                    <target>
+                                        <running/>
+                                    </target>
+                                    <config>
+                                        <top>
+                                            <object operation="create" get-config="true">
+                                                <type>Vlan</type>
+                                                <id>
+                                                    <vlan>{vlan_id}</vlan>
+                                                </id>
+                                                <name>{name}</name>
+                                                <igmp-mode>{igmp_mode}</igmp-mode>
+                                                <igmp-prof>
+                                                    <type>VlanIgmpProf</type>
+                                                    <id>
+                                                        <vlanigmpprof>{vlanigmpprof_id}</vlanigmpprof>
+                                                    </id>
+                                                </igmp-prof>
+                                                <dhcp-mode>{dhcp_mode}</dhcp-mode>
+                                                <mac-force-forw>{mac_force_forw}</mac-force-forw>
+                                                <ip-src-verify>{ip_src_verify}</ip-src-verify>
+                                                <mac-learn>{mac_learn}</mac-learn>
+                                                <ae-ont-discovery>{ae_ont_discovery}</ae-ont-discovery>
+                                                <pon-tlan>{pon_tlan}</pon-tlan>
+                                                <pon-hairpin>{pon_hairpin}</pon-hairpin>
+                                                <igmp-pbit>{igmp_pbit}</igmp-pbit>
+                                                {_dhcp_svc_prof_id}
+                                                <option82-enable>{option82_enable}</option82-enable>
+                                                <eth-opt82prof>
+                                                    <type>Opt82Prof</type>
+                                                    <id>
+                                                        <opt82prof>{eth_opt82prof_id}</opt82prof>
+                                                    </id>
+                                                </eth-opt82prof>
+                                                <gpon-opt82prof>
+                                                    <type>Opt82Prof</type>
+                                                    <id>
+                                                        <opt82prof>{gpon_opt82prof_id}</opt82prof>
+                                                    </id>
+                                                </gpon-opt82prof>
+                                                <mobility>{mobility}</mobility>
+                                                {_pppoe_profile}
+                                            </object>
+                                        </top>
+                                    </config>
+                                </edit-config>
+                            </rpc>
+                        </soapenv:Body>
+                    </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
 
 class Update_E7_Data():
 
