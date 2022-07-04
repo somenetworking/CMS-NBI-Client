@@ -1921,6 +1921,7 @@ class Create_E7_Data():
             else:
                 return response
 
+
 class Update_E7_Data():
 
     def __init__(self, cms_nbi_connect_object):
@@ -2020,7 +2021,7 @@ class Delete_E7_Data():
         :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
         :type http_timeout:int
 
-        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000), submitting '0' requests the ont be built on the first available ID, as described in pg.129 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000), as described in pg.129 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ont_id:str
 
         :param force: force expects a boolean string ['true', 'false'] Note: For a non-force(ie..force='false') delete to be successful, all service must be removed from the ONT. force="true"—Perform a force delete (deletes that all services on the ONT). as described in pg.47 of Calix Management System (CMS) R15.x Northbound Interface API Guide
@@ -2060,6 +2061,92 @@ class Delete_E7_Data():
                             </rpc>
                         </soapenv:Body>
                     </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+            else:
+                return response
+
+    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='', force='false'):
+        """
+        Description
+        -----------
+        function vlan() performs a http/xml Deletion query for the provided network_nm(e7_node) requesting an <Vlan> object be deleted with the provided details
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param vlan_id: Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type vlan_id:str
+
+        :param force: force expects a boolean string ['true', 'false'] Note: For a non-force(ie..force='false') delete to be successful, all membership must be removed from the vlan. force="true"—Perform a force delete (deletes that all memberships on the VLAN). as described in pg.47 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type force:str
+
+        :raise:
+            AttributeError: will be raised if the vlan_id is not a digit in the form of a str object
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+        if isinstance(vlan_id, str):
+            if vlan_id.isdigit():
+                pass
+            else:
+                raise AttributeError("""param:vlan_id is expected to be a digit in the form of a str object""")
+        else:
+            raise AttributeError("""param:vlan_id is expected to be a digit in the form of a str object""")
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                <soapenv:Body>
+                                    <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                        <edit-config>
+                                            <target>
+                                                <running/>
+                                            </target>
+                                            <config>
+                                                <top>
+                                                    <object operation="delete" force="{force}">
+                                                        <type>Vlan</type>
+                                                        <id>
+                                                            <vlan>{vlan_id}</vlan>
+                                                        </id>
+                                                    </object>
+                                                </top>
+                                            </config>
+                                        </edit-config>
+                                    </rpc>
+                                </soapenv:Body>
+                            </soapenv:Envelope>"""
 
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
