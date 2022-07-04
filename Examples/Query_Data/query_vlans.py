@@ -67,6 +67,11 @@ query_e7_data.system_children_vlan(cms_user_nm=client.cms_nbi_config['cms_nodes'
                                    network_nm='NTWK-Example Network Name',
                                    attr_filter={'pppoe-prof': {'type': 'PppoeProf', 'id': {'pppoeprof': '1'}}})
 
+# QUERY FOR ALL VLANS WITH THE TVLAN ATTRIBUTE
+query_e7_data.system_children_vlan(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                   network_nm='NTWK-Example Network Name',
+                                   attr_filter={'pon-tlan': 'true'})
+
 
 # When you need to query a specific vlan, we can use the vlan() function
 # all you need to do is pass it the id
