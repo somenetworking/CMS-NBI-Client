@@ -4,9 +4,11 @@ CMS-NBI-CLIENT is a python package in the works, to interact with Calix Manageme
 
 
 ## Resources
-
+ 
  - [Calix Management System (CMS) R14.1 Northbound Interface API Guide](https://paultclark.com/network/calix/Calix%20Management%20System%20(CMS)%20R14.1%20Northbound%20Interface%20API%20Guide.pdf)
  
+ - [Calix E-Series (E7 OS R2.6 Engineering and Planning Guide]
+ (https://paultclark.com/network/calix/Calix%20E-Series%20(E7%20OS%20R2.6)%20Engineering%20and%20Planning%20Guide.pdf)
 ## Examples
  --can be found in /Examples folder
 
