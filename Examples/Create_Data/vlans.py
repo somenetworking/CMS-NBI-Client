@@ -20,7 +20,7 @@ create_e7_data = Create_E7_Data(client)
 
 # Once the Create_E7_Data object is created we can then call the vlan function and create a vlan with the provided parameters
 #################################################################################################################
-# CREATE DEFUALT VLAN PER DOCUMENTATION IN pg.335-338 Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+# CREATE DEFAULT VLAN PER DOCUMENTATION IN pg.335-338 Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
 create_e7_data.vlan(message_id='1',
                     cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
                     network_nm='NTWK-Example_Name',
