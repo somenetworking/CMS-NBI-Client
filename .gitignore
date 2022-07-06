@@ -214,3 +214,7 @@ cython_debug/
 
 # CMS_NBI_CLIENT CONFIG FILE
 */cms_nbi_config.json
+/.vs/ProjectSettings.json
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
+/.vs/CMS-NBI-Client
