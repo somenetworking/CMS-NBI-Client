@@ -1,5 +1,5 @@
 # IMPORT STATEMENT
-from CMSNBIClient import *
+from CMSNBIClient import CMS_NBI_Client
 # IMPORT STATEMENT
 
 # Create the CMS_NBI_Client() instance
