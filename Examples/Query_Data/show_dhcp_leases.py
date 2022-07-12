@@ -36,7 +36,7 @@ query_e7_data.show_dhcp_leases(message_id='1',
 # vlan:"1"
 # ontethge:{'ont':'1','ontethge':'1'}
 # ontethfe:{'ont': '1', 'ontethfe': '1'}
-# ethintf:---Havent built the function to support this yet
+# ethintf:{'ethintf': {'shelf': '1','card': '1', 'ethintf': '103'}}
 # gponport:{'shelf': '1', 'card': '1', 'gponport': '1'}
 
 # QUERY ON A SPECIFIED VLAN
