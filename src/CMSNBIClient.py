@@ -41,7 +41,7 @@ class CMS_NBI_Client:
                        }
         # collects the current working directory(cwd) then creates a path for the cms_nbi_config.json file
         cwd = os.getcwd()
-        cf_path = os.path.join(cwd, 'cms_nbi_config.json')
+        cf_path = os.path.join(cwd, '../cms_nbi_config.json')
 
         def config_file_checker(data=config_data, config_file_path=cf_path):
         # function to check if the cms_nbi_config.json file exist in the local dir
@@ -284,7 +284,7 @@ class CMS_NBI_Client:
         :return: update_config() currently does not return any objects
         """
         cwd = os.getcwd()
-        cf_path = os.path.join(cwd, 'cms_nbi_config.json')
+        cf_path = os.path.join(cwd, '../cms_nbi_config.json')
 
         def config_file_updater(data=self.cms_nbi_config, config_file_path=cf_path):
             # function to check if the cms_nbi_config.json file exist in the local dir
@@ -975,7 +975,6 @@ class Query_E7_Data():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-
         headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
                    'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
 
@@ -1031,6 +1030,261 @@ class Query_E7_Data():
                     return resp
                 else:
                     return response
+            else:
+                return response
+
+    def ont_children_ethsvc(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', after_filter={'': ''}, attr_filter={'': ''}):
+        """
+        Description
+        -----------
+        function ont_children_ethsvc() performs a http/xml query for the provided network_nm(e7_node) requesting the <EthSvc> children of the <ONT> object type
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type after_filter:dict
+
+        :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type attr_filter:dict
+
+        :return: ont_children_ethsvc() returns a requests.models.Response object on a failed/empty query and a list of nested dict on a successful query
+
+
+        Example
+        -----------
+        # ALL EthSvc on the specified ONT_ID
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1')
+
+        # We can also pass filters to ont_children_ethsvc() function to narrow our query down.
+        # --------------LIST OF FILTERS--------------
+        # --------KEY--------|--------VALUE--------
+        # 'admin'            | 'enabled' or 'disabled' or 'enabled-no-alarms'
+        # 'descr'            | 'example_description'
+        # 'tag-action'       | {'type': 'SvcTagAction', 'id': {'svctagaction': 'svctagaction_id'}}
+        # 'bw-prof'          | {'type': 'BwProf', 'id': {'bwprof': 'bwprof_id'}}
+        # 'out-tag'          | 'none' or '2' --------s-tag, ie outer tag of a QinQ frame should be represented as an int str object
+        # 'in-tag'           | 'none' or '2' --------c-tag, ie inner tag of a QinQ frame should be represented as an int str object
+        # 'mcast-prof'       | None or {'type': 'McastProf', 'id': {'mcastprof': 'mcastprof_id'}}
+        # 'pon-cos'          | 'derived' or 'cos-1' through 'cos-4' or 'user-1' through 'user-4' or 'fixed' ----Please reference pg.173 from (Calix Management System (CMS) R15.x Northbound Interface API Guide) && pg.251 from (Calix E-Series (E7 OS R2.5) Engineering and Planning Guide) for more information
+        # 'us-cir-override'  | 'none' or '1k' through '2048k' in 64bit increments or '0m' through '2500m'   ----Please reference pg.205-310 from (Calix E-Series (E7 OS R2.5) Engineering and Planning Guide) for more information
+        # 'us-pir-override'  | 'none' or '1k' through '2048k' in 64bit increments or '0m' through '2500m'   ----Please reference pg.205-310 from (Calix E-Series (E7 OS R2.5) Engineering and Planning Guide) for more information
+        # 'ds-pir-override'  | 'none' or '1k' through '2048k' in 64bit increments or '0m' through '2500m'   ----Please reference pg.205-310 from (Calix E-Series (E7 OS R2.5) Engineering and Planning Guide) for more information
+        # 'hot-swap'         | 'enabled' or 'disabled' -----Please reference (Calix E-Series (E7 EXA R3.x) GPON Applications Guide) for more information
+
+
+        # ------BY ADMIN STATE------
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'admin': 'enabled'})
+
+        # ------BY EthSvc DESCRIPTION------
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'descr': 'example_description'})
+
+        # ------BY SvcTagAction ID------
+        # Using an SvcTagAction ID of 1
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'tag-action':
+                                                           {'type': 'SvcTagAction',
+                                                            'id': {'svctagaction': '1'}}})
+
+        # ------BY BANDWIDTH PROFILE ID------
+        # Using an BwProf ID of 1
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'bw-prof':
+                                                           {'type': 'BwProf',
+                                                            'id': {'bwprof': '1'}}})
+
+        # ------BY OUTER VLAN TAG------
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'out-tag': '2'})
+
+        # ------BY INNER VLAN TAG------
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'in-tag': '2'})
+
+        # ------BY MULTICAST PROFILE ID------
+        # Using an McastProf ID of 1
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'mcast-prof': {'type': 'McastProf',
+                                                                      'id': {'mcastprof': '1'}}})
+
+        # Using an None as the Mcast value, this will search for all EthSvc with no McastProf applied
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'mcast-prof': None})
+
+
+        # ------BY PON COS------
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'pon-cos': 'derived'})
+
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'pon-cos': 'cos-1'})
+
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'pon-cos': 'user-1'})
+
+        query_e7_data.ont_children_ethsvc(message_id='1',
+                                          cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          network_nm='NTWK-Example_Name',
+                                          http_timeout=1,
+                                          ont_id='1',
+                                          attr_filter={'pon-cos': 'fixed'})
+        """
+
+        if '' not in after_filter.keys():
+            _after_filter = f"""<after>{xmltodict.unparse(after_filter,full_document=False)}</after>"""
+        else:
+            _after_filter = """"""
+
+        if '' not in attr_filter.keys():
+            _attr_filter = f"""<attr-filter>{xmltodict.unparse(attr_filter, full_document=False)}</attr-filter>"""
+        else:
+            _attr_filter = """<attr-filter></attr-filter>"""
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <get-config>
+                                    <source>
+                                        <running/>
+                                    </source>
+                                    <filter type="subtree">
+                                        <top>
+                                            <object>
+                                                <type>Ont</type>
+                                                <id>
+                                                    <ont>{ont_id}</ont>
+                                                </id>
+                                                <children>
+                                                    <type>EthSvc</type>
+                                                        {_after_filter}
+                                                        {_attr_filter}
+                                                    <attr-list>admin descr tag-action bw-prof out-tag in-tag mcast-prof pon-cos us-cir-override us-pir-override ds-pir-override hot-swap pppoe-force-discard</attr-list>
+                                                </children>
+                                            </object>
+                                        </top>
+                                    </filter>
+                                </get-config>
+                            </rpc>
+                        </soapenv:Body>
+                    </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+                # debating between exit and raise will update in future
+                exit(f"{e}")
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                last_entry = resp_dict[len(resp_dict)-1]
+                __after_filter = {'type': last_entry['type'], 'id': {'ont': last_entry['id']['ont'], 'ontslot': last_entry['id']['ontslot'], 'ontethany': last_entry['id']['ontethany'], 'ethsvc': last_entry['id']['ethsvc']['#text']}}
+                try:
+                    if isinstance(self.resp_ont_children_ethsvc, list):
+                        self.resp_ont_children_ethsvc.extend(resp_dict)
+                except:
+                    self.resp_ont_children_ethsvc = []
+                    self.resp_ont_children_ethsvc.extend(resp_dict)
+                return self.ont_children_ethsvc(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm, http_timeout=http_timeout, ont_id=ont_id, after_filter=__after_filter, attr_filter=attr_filter)
+            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']
+                # Trying to catch NONE type objects and not append them to the list
+                if not isinstance(resp_dict, type(None)):
+                    try:
+                        if isinstance(self.resp_ont_children_ethsvc, list):
+                            if isinstance(resp_dict, list):
+                                self.resp_ont_children_ethsvc.extend(resp_dict)
+                            else:
+                                self.resp_ont_children_ethsvc.append(resp_dict)
+                    except:
+                        self.resp_ont_children_ethsvc = []
+                        if isinstance(resp_dict, list):
+                            self.resp_ont_children_ethsvc.extend(resp_dict)
+                        else:
+                            self.resp_ont_children_ethsvc.append(resp_dict)
+                else:
+                    pass
+
+                try:
+                    resp = self.resp_ont_children_ethsvc
+                    del self.resp_ont_children_ethsvc
+                except:
+                    resp = response
+                return resp
             else:
                 return response
 
