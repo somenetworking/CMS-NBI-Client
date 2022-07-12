@@ -41,7 +41,7 @@ class CMS_NBI_Client:
                        }
         # collects the current working directory(cwd) then creates a path for the cms_nbi_config.json file
         cwd = os.getcwd()
-        cf_path = os.path.join(cwd, '../cms_nbi_config.json')
+        cf_path = os.path.join(cwd, 'cms_nbi_config.json')
 
         def config_file_checker(data=config_data, config_file_path=cf_path):
         # function to check if the cms_nbi_config.json file exist in the local dir

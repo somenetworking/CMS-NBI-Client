@@ -111,7 +111,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit localtest / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -218,6 +218,7 @@ cms_nbi_config.json
 /.vs/slnx.sqlite
 /.vs/VSWorkspaceState.json
 /.vs/CMS-NBI-Client
-/test/dev_test.py
-/test/prod_test.py
+/localtest/dev_test.py
+/localtest/prod_test.py
 /cms_nbi_config.json
+/localtest/dev_test.py
