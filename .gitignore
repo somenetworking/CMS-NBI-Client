@@ -222,3 +222,4 @@ cms_nbi_config.json
 /localtest/prod_test.py
 /cms_nbi_config.json
 /localtest/dev_test.py
+/.vs/tasks.vs.json
