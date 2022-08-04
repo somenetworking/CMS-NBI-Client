@@ -102,6 +102,9 @@ class CMS_NBI_Client:
         :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
         :type http_timeout:int
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: login_netconf() returns a tuple with (False,requests.models.Response object) or (True,'')
         """
 
@@ -141,7 +144,7 @@ class CMS_NBI_Client:
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
                 # future came and it decided to have raise 
-                raise f'{e}'
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -200,6 +203,9 @@ class CMS_NBI_Client:
         :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
         :type http_timeout:int
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: logout_netconf() returns a tuple with (False,requests.models.Response object) or (True,'')
         """
         if isinstance(message_id, type(None)) and isinstance(self.message_id, type(None)):
@@ -232,7 +238,7 @@ class CMS_NBI_Client:
                 response = requests.post(url=self.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 #debating between exit and raise will update in future
-                raise f'{e}'
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -368,6 +374,9 @@ class Query_E7_Data():
         :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
         :type http_timeout:int
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system() will return a nested dict on a successful call and a requests.models.Response object on a failed call
         """
 
@@ -395,7 +404,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -435,6 +444,9 @@ class Query_E7_Data():
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system_children() returns a requests.models.Response object on a failed call, and a nested dict on a successful call
         """
         if 'type' in after_filter.keys():
@@ -473,7 +485,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -549,6 +561,9 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system_children_discont() will return a requests.models.Response object on a failed call, and a list of nested dict on a successful call
         """
         if 'discont' in after_filter.keys():
@@ -607,7 +622,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -686,6 +701,9 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system_children_ontprof() returns a requests.models.Response object on a failed query and a nested dict on a successful query
         """
         if 'ontprof' in after_filter.keys():
@@ -742,7 +760,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -812,6 +830,9 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system_children_ontpwe3prof() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
         """
         if '' not in after_filter.keys():
@@ -864,7 +885,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -936,6 +957,9 @@ class Query_E7_Data():
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: system_children_vlan() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
         """
         # After Filter Parser
@@ -985,7 +1009,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1059,6 +1083,9 @@ class Query_E7_Data():
 
         :param attr_filter: expects a dictionary with the attr as the key and the attr_val as the value, this is used to perform the attr-filter action as mentioned in pg.40 of the Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type attr_filter:dict
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: ont_children_ethsvc() returns a requests.models.Response object on a failed/empty query and a list of nested dict on a successful query
 
@@ -1239,7 +1266,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1312,6 +1339,9 @@ class Query_E7_Data():
         :param ontprof_id: this parameter identifies the ID of a pre-defined local ONT profile, which can be a custom profile from 1 to 50, or one of the default profile IDs listed in E7 GPON ONT Profile IDs, as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: ontprof() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -1345,7 +1375,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1384,6 +1414,9 @@ class Query_E7_Data():
         :param ont_sn: this parameter is the SN of the ont being requested, for calix ONTs this is formed by CXNK+
         :type ont_sn:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: discont() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
 
@@ -1414,7 +1447,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1453,6 +1486,9 @@ class Query_E7_Data():
         :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface, as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontpwe3prof_id:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: ontpwe3prof() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -1486,7 +1522,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1525,6 +1561,9 @@ class Query_E7_Data():
         :param vlan_id: Identifies the VLAN: 2 to 4093, excluding any reserved VLANs, as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: vlan() will return a requests.models.Response object on a failed query, and a dict on a successful query
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -1558,7 +1597,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1599,6 +1638,9 @@ class Query_E7_Data():
 
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: show_ont() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
         """
@@ -1668,7 +1710,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1742,6 +1784,9 @@ class Query_E7_Data():
 
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: show_dhcp_leases() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
         """
@@ -1823,7 +1868,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -1890,6 +1935,9 @@ class Query_E7_Data():
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: show_vlan_members() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
         """
         if ' ' not in after_filter.keys():
@@ -1924,7 +1972,7 @@ class Query_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2048,6 +2096,9 @@ class Create_E7_Data():
         :param ontprof_id: identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
 
@@ -2098,7 +2149,7 @@ class Create_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2188,6 +2239,9 @@ class Create_E7_Data():
         :param pppoe_profile:Assign a previously-created PPPoE profile. When a PPPoE profile is selected, the DHCP features are disabled. Setting a VLAN PPPoE profile to “none” passes through all PPPoE traffic, transparently. If a PPPoE profile is used with PPPoE snoop, a list of all the active sessions and statistics are available, and the PPPoE stack is enabled, which passes through PPPoE traffic transparently as long as the Clients/BRAS are operating normally (illegal packets will be dropped),this is explained better in pg.338 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
         :type pppoe_profile:dict
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: vlan() function will return a dict on a successfull call, and a request.Models.Response object on a failed call
         """
         if isinstance(pppoe_profile['pppoe-prof'], dict):
@@ -2262,7 +2316,7 @@ class Create_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2306,6 +2360,9 @@ class Create_E7_Data():
 
         :param int_id: identifies the interface object being added to the vlan object, please review pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide for more information
         :type int_id:dict
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: vlan_members() will return a dict on a successfull query and a response.models.response object on a failed query
 
@@ -2423,7 +2480,7 @@ class Create_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2548,6 +2605,7 @@ class Delete_E7_Data():
 
         :raise:
             AttributeError: will be raised if the ont_id is not a digit in the form of a str object
+            ConnectTimeout: will be raised if http(s) connection times out
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
@@ -2590,7 +2648,7 @@ class Delete_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2634,6 +2692,7 @@ class Delete_E7_Data():
 
         :raise:
             AttributeError: will be raised if the vlan_id is not a digit in the form of a str object
+            ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
@@ -2676,7 +2735,7 @@ class Delete_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2718,6 +2777,9 @@ class Delete_E7_Data():
         :param vlan_member_id: —Identifies the VLAN member. 1 to 1000 as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_member_id:str
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: vlan_members() will return a dict on a successful query and a response.models.response object on a failed query
 
         Example
@@ -2756,7 +2818,7 @@ class Delete_E7_Data():
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
-                raise f"{e}"
+                raise e
         else:
             # will need to research how to implement https connection with request library
             pass
@@ -2824,6 +2886,9 @@ class Query_Rest_Data():
         :param http_timeout: this var contains the http_timeout for the request library, this is in the form of an int
         :type http_timeout:int
 
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+
         :return: device() returns a list of nested dicts on a successful query and a request.models.Requests object on failed queries
 
         Example
@@ -2864,7 +2929,7 @@ class Query_Rest_Data():
             response = requests.get(url=cms_rest_url, headers=headers, data=payload, auth=(cms_user_nm, cms_user_pass), timeout=http_timeout)
         except requests.exceptions.Timeout as e:
             # debating between exit and raise will update in future
-            raise f"{e}"
+            raise e
 
         if response.status_code == 200:
             return response.json()['data']
