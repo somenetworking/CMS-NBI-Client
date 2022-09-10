@@ -6,7 +6,7 @@ with open("README.md", 'r') as f:
 setup(
     name='CMS-NBI-Client',
     py_modules=['CMSNBIClient'],
-    version='0.0.1',
+    version='0.0.2',
     description='Python Module to interact with the Calix Management System',
     long_description=long_description,
     long_description_content_type='text/markdown',
