@@ -142,7 +142,7 @@ class CMS_NBI_Client:
             try:
                 response = requests.post(url=self.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 # future came and it decided to have raise 
                 raise e
         else:
@@ -403,7 +403,7 @@ class Query_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -484,7 +484,7 @@ class Query_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -621,7 +621,7 @@ class Query_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -759,7 +759,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -884,7 +884,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1008,7 +1008,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1265,7 +1265,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1374,7 +1374,7 @@ class Query_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1446,7 +1446,7 @@ class Query_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1521,7 +1521,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1596,7 +1596,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1643,6 +1643,71 @@ class Query_E7_Data():
             ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: show_ont() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
+
+        Example
+        -----------
+        IMPORTANT NOTE
+
+        Once the Query_E7_Data() object is created we can then call the show_ont() function
+        show_ont() function can be used to collect the Provisioned ONTs Data on the targeted Network Name(ie..the E7 NODE)
+        -----IMPORTANT NOTE-----
+        While testing this solution, I discovered a http_timeout of 5, had to be set to prevent a timeout, your mileage may vary
+
+        this base query will pull data for all provisioned ONTs on the targeted Network Name(ie..the E7 NODE)
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5)
+
+        While pulling data for all ONTs on the node can be useful, it is much better to have a more precise query
+        for this we can pass filters to the show_ont() function
+        ---------LIST OF FILTERS----------
+        admin:['enabled', 'enabled-no-alarms', 'disabled']
+        serno:'123456'
+        subscr-id: '99999'
+        reg-id:
+        pon:{'shelf': '1', 'card': '1', 'gponport': '1'}
+        ontprof: '1'
+        ont:'1'
+
+        # In this example we will pull the stats for all provisioned ONTs that are 'enabled'
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'admin': 'enabled'})
+
+        # In this example we will pull the stats for all provisioned ONTs using a specific ontprof
+        # IMPORTANT NOTE - submit the ontprof id not the name
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'ontprof': '1'})
+
+        # In this example we will pull the stats for all provisioned ONTs that are on a specific pon port
+        # for this example we will be using GPON id 1/1/1
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'pon': {'shelf': '1', 'card': '1', 'gponport': '1'}})
+
+        # In this example we will pull the stats for the specified ONT by its serial-number
+        # IMPORTANT NOTE - cms expects the Hexadecimal version of the SN, normally this will be the last 6 char of the serial
+        # Say we have a serial of CXNK00123456, we would submit 123456
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'serno': '123456'})
+
+        # In this example we will pull the stats for the specified ONT by its provisioned subscriber-id
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'subscr-id': '99999999'})
+
+        # In this example we will pull the stats for the specified ONT by its ONT ID
+        query_e7_data.show_ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                               network_nm='NTWK-Example Network Name',
+                               http_timeout=5,
+                               action_args={'ont': '1'})
         """
         if ' ' not in after_filter.keys():
             _after_filter = f"""<after>
@@ -1709,7 +1774,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1867,7 +1932,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -1971,7 +2036,7 @@ class Query_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2052,7 +2117,7 @@ class Create_E7_Data():
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id=''):
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0', admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='', us_sdber_rate='5', low_rx_opt_pwr_ne_thresh='-30.0', high_rx_opt_pwr_ne_thresh='-7.0', battery_present='false', pse_max_power_budget='30', poe_class_control='disabled'):
         """
         Description
         -----------
@@ -2081,7 +2146,7 @@ class Create_E7_Data():
         :param ont_sn: identifies the Hexadecimal representation of the ONT serial number, to assign the SN at a later date, input '0', as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ont_sn:str
 
-        :param reg_id:ONT registration ID that is the RONTA identifier., as described in pg.232 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param reg_id: ONT registration ID that is the RONTA identifier., as described in pg.232 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type reg_id:str
 
         :param sub_id: Identifies the subscriber ID., as described in pg.63 of Calix Management System (CMS) R15.x Northbound Interface API Guide
@@ -2096,10 +2161,64 @@ class Create_E7_Data():
         :param ontprof_id: identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
+        :param us_sdber_rate: Also Known as (Upstream Signal Degraded Error Rate) identifies the threshold for upstream bit errors before an alarm is raised range (2-6), please see pg.31 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type us_sdber_rate:str
+
+        :param low_rx_opt_pwr_ne_thresh: Also known as (Low Receive Optical Power Near End Threshold) identifies the lowest optical signal level that the ONT will accept before raising a low-rx-opt-pwr-ne alarm, default value(-30.0) accepts(-30.0 to -7.0), please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type low_rx_opt_pwr_ne_thresh:str
+
+        :param high_rx_opt_pwr_ne_thresh: Also known as (High Receive Optical Power Near End Threshold) identifies the highest optical signal level that the ONT will accept before raising a high-rx-opt-pwr-ne alarm, default value(-7.0) accepts(-30.0 to -7.0) please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type high_rx_opt_pwr_ne_thresh:str
+
+        :param battery_present: Identifies the requested batter-present state ie(true or false), this will determine if the ont alarms once it identifies the commercial power has been cut, please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :type battery_present:str
+
+        :param pse_max_power_budget: This defines the Power Sourcing Equipment (PSE) maximum power budget in Watts that the OLT can source on all Power over Ethernet (PoE) enabled Ethernet UNI ports. The PSE maximum power budget is effective in ONT only if the ownership is OMCI. default value(30) accepts(1 to 90), please see  E7 EXA R3.x GPON Applications Guide for more information
+        :type pse_max_power_budget:str
+
+        :param poe_class_control: the port can be classified to the type of Powered Device (PD) that will be connected to the port. Different classes of PD require different amounts of power, accepts 'enabled' or 'disabled', please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :type poe_class_control:str
+
         :raise:
             ConnectTimeout: Will be raised if the http(s) connection timesout
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+
+        Example
+        -----------
+        IMPORTANT NOTE
+
+        You will need to submit the correct structured dictionary to the int_id param
+
+        # CREATE A DEFAULT 812G ONT, USING THE FIRST ONT_ID available on NTWK-Example_Name.
+        # Coupled with ont_sn='0', this call will tell the cms server to create a new ont record with no SN allowing us to fill it in later.
+        create_e7_data.ont( message_id='1',
+                            cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                            network_nm='NTWK-Example_Name',
+                            http_timeout=1,
+                            ont_id='0',
+                            admin_state='enabled',
+                            ont_sn='0',
+                            reg_id='',
+                            sub_id='999999',
+                            ont_desc='Example_Description',
+                            ontpwe3prof_id='1',
+                            ontprof_id='162')
+
+        # CREATE A DEFAULT 812G ONT, USING THE FIRST ONT_ID AVAILABLE ONT NTWK-Example_Name
+        # With this call we provided the ONT_SN, this will create a record tying the ONT_SN to the ONT provisioning, once the ont is discovered by the E7 the config is pushed.
+        create_e7_data.ont( message_id='1',
+                        cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                        network_nm='NTWK-Example_Name',
+                        http_timeout=1,
+                        ont_id='0',
+                        admin_state='enabled',
+                        ont_sn='0',
+                        reg_id='',
+                        sub_id='999999',
+                        ont_desc='Example_Description',
+                        ontpwe3prof_id='1',
+                        ontprof_id='162')
         """
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -2133,6 +2252,12 @@ class Create_E7_Data():
                                                         <ontprof>{ontprof_id}</ontprof>
                                                     </id>
                                                 </ontprof>
+                                                <us-sdber-rate>{us_sdber_rate}</us-sdber-rate>
+                                                <low-rx-opt-pwr-ne-thresh>{low_rx_opt_pwr_ne_thresh}</low-rx-opt-pwr-ne-thresh>
+                                                <high-rx-opt-pwr-ne-thresh>{high_rx_opt_pwr_ne_thresh}</high-rx-opt-pwr-ne-thresh>
+                                                <battery-present>{battery_present}</battery-present>
+                                                <pse-max-power-budget>{pse_max_power_budget}</pse-max-power-budget>
+                                                <poe-class-control>{poe_class_control}</poe-class-control>
                                             </object>
                                         </top>
                                     </config>
@@ -2148,7 +2273,7 @@ class Create_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2315,7 +2440,7 @@ class Create_E7_Data():
             try:
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload, timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2479,7 +2604,7 @@ class Create_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2536,6 +2661,151 @@ class Update_E7_Data():
                 raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a int in a str object""")
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
+
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', admin_state='', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='', ontprof_id='', us_sdber_rate='', low_rx_opt_pwr_ne_thresh='', high_rx_opt_pwr_ne_thresh='', battery_present='', pse_max_power_budget='', poe_class_control=''):
+        """
+        Description
+        -----------
+        function ont() performs a http/xml Update query for the provided network_nm(e7_node) requesting an <Ont> object be updated with the provided details
+
+        Attributes
+        ----------
+        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
+        :type message_id:str
+
+        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type cms_user_nm:str
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000), 
+        :type ont_sn:str
+
+        :param admin_state: operational status of the created ONT, valid values are [disabled,enabled,enabled-no-alarms], this is explained further in pg.237 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type admin_state:str
+
+        :param ont_sn: identifies the Hexadecimal representation of the ONT serial number, to assign the SN at a later date, input '0', as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type ont_sn:str
+
+        :param reg_id: ONT registration ID that is the RONTA identifier., as described in pg.232 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type reg_id:str
+
+        :param sub_id: Identifies the subscriber ID., as described in pg.63 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type sub_id:str
+
+        :param ont_desc: Identifies the ONT Description
+        :type ont_desc:str
+
+        :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface. as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type ontpwe3prof_id:str
+
+        :param ontprof_id: identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type ontprof_id:str
+
+        :param us_sdber_rate: Also Known as (Upstream Signal Degraded Error Rate) identifies the threshold for upstream bit errors before an alarm is raised range (2-6), please see pg.31 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type us_sdber_rate:str
+
+        :param low_rx_opt_pwr_ne_thresh: Also known as (Low Receive Optical Power Near End Threshold) identifies the lowest optical signal level that the ONT will accept before raising a low-rx-opt-pwr-ne alarm, default value(-30.0) accepts(-30.0 to -7.0), please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type low_rx_opt_pwr_ne_thresh:str
+
+        :param high_rx_opt_pwr_ne_thresh: Also known as (High Receive Optical Power Near End Threshold) identifies the highest optical signal level that the ONT will accept before raising a high-rx-opt-pwr-ne alarm, default value(-7.0) accepts(-30.0 to -7.0) please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :type high_rx_opt_pwr_ne_thresh:str
+
+        :param battery_present: Identifies the requested batter-present state ie(true or false), this will determine if the ont alarms once it identifies the commercial power has been cut, please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :type battery_present:str
+
+        :param pse_max_power_budget: This defines the Power Sourcing Equipment (PSE) maximum power budget in Watts that the OLT can source on all Power over Ethernet (PoE) enabled Ethernet UNI ports. The PSE maximum power budget is effective in ONT only if the ownership is OMCI. default value(30) accepts(1 to 90), please see  E7 EXA R3.x GPON Applications Guide for more information
+        :type pse_max_power_budget:str
+
+        :param poe_class_control: the port can be classified to the type of Powered Device (PD) that will be connected to the port. Different classes of PD require different amounts of power, accepts 'enabled' or 'disabled', please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :type poe_class_control:str
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection timesout
+            ValueError: Will be raised if the ont_id is not an int str ie whole number
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+        # Since i dont know how to filter parameters that are empty this is what im doing , hopefully it works
+        # using change_var_list as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
+        # before using xmltodict.unparse to convert it to an xml str
+        par_inputs = vars()
+        if isinstance(par_inputs['ont_id'], str):
+            if par_inputs['ont_id'].isdigit and not par_inputs['ont_id'] == '0':
+                pass
+            else:
+                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR 1..2..3..ie""")
+
+        change_var = {'admin': par_inputs['admin_state'],
+                      'battery-present': par_inputs['battery_present'],
+                      'descr': par_inputs['ont_desc'],
+                      'high-rx-opt-pwr-ne-thresh': par_inputs['high_rx_opt_pwr_ne_thresh'],
+                      'low-rx-opt-pwr-ne-thresh': par_inputs['low_rx_opt_pwr_ne_thresh'],
+                      'ontprof': {'id': {'ontprof': par_inputs['ontprof_id']}, 'type': 'OntProf'},
+                      'poe-class-control': par_inputs['poe_class_control'],
+                      'pse-max-power-budget': par_inputs['pse_max_power_budget'],
+                      'pwe3prof': {'id': {'ontpwe3prof': par_inputs['ontpwe3prof_id']}, 'type': 'OntPwe3Prof'},
+                      'reg-id': par_inputs['reg_id'],
+                      'serno': par_inputs['ont_sn'],
+                      'subscr-id': par_inputs['sub_id'],
+                      'us-sdber-rate': par_inputs['us_sdber_rate']}
+
+        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        if not change_var['ontprof']['id']['ontprof']:
+            change_var.pop('ontprof')
+        if not change_var['pwe3prof']['id']['ontpwe3prof']:
+            change_var.pop('pwe3prof')
+        chang_xml = xmltodict.unparse(change_var, full_document=False)
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                        <soapenv:Body>
+                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <edit-config>
+                                <target>
+                                <running/>
+                                </target>
+                                    <config>
+                                        <top>
+                                            <object operation="merge" get-config="true">
+                                                <type>Ont</type>
+                                                <id>
+                                                    <ont>{ont_id}</ont>
+                                                </id>{chang_xml}
+                                            </object>
+                                        </top>
+                                    </config>
+                                </edit-config>
+                            </rpc>
+                            </soapenv:Body>
+                        </soapenv:Envelope>"""
+
+        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+
+        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
+                                         timeout=http_timeout)
+            except requests.exceptions.Timeout as e:
+
+                raise e
+        else:
+            # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
 
 
 class Delete_E7_Data():
@@ -2647,7 +2917,7 @@ class Delete_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2734,7 +3004,7 @@ class Delete_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2817,7 +3087,7 @@ class Delete_E7_Data():
                 response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
                                          timeout=http_timeout)
             except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
+                
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -2928,7 +3198,7 @@ class Query_Rest_Data():
         try:
             response = requests.get(url=cms_rest_url, headers=headers, data=payload, auth=(cms_user_nm, cms_user_pass), timeout=http_timeout)
         except requests.exceptions.Timeout as e:
-            # debating between exit and raise will update in future
+            
             raise e
 
         if response.status_code == 200:
