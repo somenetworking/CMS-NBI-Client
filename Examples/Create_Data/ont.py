@@ -1,6 +1,6 @@
 # IMPORT STATEMENT
-from src.CMSNBIClient import CMS_NBI_Client
-from src.CMSNBIClient import Create_E7_Data
+from CMSNBIClient import CMS_NBI_Client
+from CMSNBIClient import Create_E7_Data
 # IMPORT STATEMENT
 
 # Create the CMS_NBI_Client() instance
