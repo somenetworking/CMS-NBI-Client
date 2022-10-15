@@ -219,3 +219,4 @@ cython_debug/
 /.vs/CMS-NBI-Client
 /.vs/tasks.vs.json
 /localtest/
+/cms_nbi_config.json
