@@ -2662,7 +2662,7 @@ class Update_E7_Data():
         else:
             raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', admin_state='', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='', ontprof_id='', us_sdber_rate='', low_rx_opt_pwr_ne_thresh='', high_rx_opt_pwr_ne_thresh='', battery_present='', pse_max_power_budget='', poe_class_control=''):
+    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', admin_state='', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='', ontprof_id='', us_sdber_rate='', low_rx_opt_pwr_ne_thresh='', high_rx_opt_pwr_ne_thresh='', battery_present='', pse_max_power_budget='', poe_class_control='', replace_sn='0'):
         """
         Description
         -----------
@@ -2724,11 +2724,55 @@ class Update_E7_Data():
         :param poe_class_control: the port can be classified to the type of Powered Device (PD) that will be connected to the port. Different classes of PD require different amounts of power, accepts 'enabled' or 'disabled', please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
         :type poe_class_control:str
 
+        :param replace_sn: '0' or '1', this option indicates if the ont's CXNK serial number is being replaced. ont_sn must be set to '0'
+        :type replace_sn:str
+
         :raise:
             ConnectTimeout: Will be raised if the http(s) connection timesout
             ValueError: Will be raised if the ont_id is not an int str ie whole number
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+
+        Example
+        ______
+
+        Next we create an Update_E7_Data instance and pass the CMS_NBI_Client instance to it
+        update_e7_data = Update_E7_Data(client)
+        Once the Update_E7_Data object is created we can then call the ont() function and update ont variables for a specific ont
+        For any updated query an ont_id must be provided in the ont_id var
+        Only the var being updated needs to be supplied
+
+        Updating the ont 1 admin_state>>disabled
+        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                           network_nm='NTWK-Example_Network',
+                           ont_id='1',
+                           admin_state='disabled')
+
+        Updating the ont 2 Subscriber Id  && Description
+        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                           network_nm='NTWK-Example_Network',
+                           ont_id='2',
+                           sub_id='9999999',
+                           ont_desc='example_ont')
+
+        Updating ont 4 to False on the battery_present
+        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                           network_nm='NTWK-Example_Network',
+                           ont_id='4',
+                           battery_present='false')
+
+        Replace an ONT with a new ont
+        this requires two calls one to unlink the cxnk and another to link a new cxnk
+        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                           network_nm='NTWK-Example_Network',
+                           ont_id='4',
+                           ont_sn='0',
+                           replace_sn='1')
+
+        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                           network_nm='NTWK-Example_Network',
+                           ont_id='4',
+                           ont_sn='9999')
         """
         # Since i dont know how to filter parameters that are empty this is what im doing , hopefully it works
         # using change_var_list as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
@@ -2752,13 +2796,19 @@ class Update_E7_Data():
                       'reg-id': par_inputs['reg_id'],
                       'serno': par_inputs['ont_sn'],
                       'subscr-id': par_inputs['sub_id'],
-                      'us-sdber-rate': par_inputs['us_sdber_rate']}
+                      'us-sdber-rate': par_inputs['us_sdber_rate'],
+                      'linked-pon': par_inputs['replace_sn']}
 
         change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
         if not change_var['ontprof']['id']['ontprof']:
             change_var.pop('ontprof')
         if not change_var['pwe3prof']['id']['ontpwe3prof']:
             change_var.pop('pwe3prof')
+        if change_var['linked-pon'] == '1':
+            change_var['linked-pon'] = None
+        else:
+            change_var.pop('linked-pon')
+
         chang_xml = xmltodict.unparse(change_var, full_document=False)
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
