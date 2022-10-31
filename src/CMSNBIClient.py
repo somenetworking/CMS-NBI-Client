@@ -1066,6 +1066,9 @@ class Query_E7_Data():
 
         Attributes
         ----------
+        :param ont_id: ONT ID value
+        :type: ont_id:str
+
         :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
         :type message_id:str
 
