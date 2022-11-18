@@ -14,7 +14,7 @@ setup(
     maintainer='somenetworking',
     maintainer_email='andrewshea06@gmail.com',
     url='https://github.com/somenetworking/CMS-NBI-Client',
-    keywords=['CMS', 'Calix', 'NETCONF', 'API', 'Networking', 'Automation'],
+    keywords=['CMS', 'Calix', 'NETCONF', 'API', 'Networking', 'Automation', 'NBI'],
     classifiers=['Programming Language :: Python :: 3',
                  'Programming Language :: Python :: 3.7',
                  'Programming Language :: Python :: 3.8',
