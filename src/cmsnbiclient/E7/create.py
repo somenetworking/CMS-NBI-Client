@@ -1,11 +1,11 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, Client)
+from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
 # IMPORT STATEMENTS
 
 
 class Create():
 
-    def __init__(self, cms_nbi_connect_object):
+    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
         """
         Description
         -----------
@@ -13,36 +13,89 @@ class Create():
 
         Attributes
         ----------
-        :param cms_nbi_connect_object: Create() accepts an object create from the cms_nbi_client.Client() class
-        :var self.cms_nbi_connect_object: accepts object created by the cms_nbi_client.Client()
-        :type self.cms_nbi_connect_object: object
-        """
-        # Test if the provided object is of a CMS_NBI_Client instance
+        :param client_object:accepts object created by the cms_nbi_client.client.Client()
+        :type client_object:Client
 
-        if isinstance(cms_nbi_connect_object, Client):
+        :param network_nm:this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout:this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :var self.message_id:a positive int up to 32bit is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type self.message_id:str
+
+        :var self.client_object:accepts object created by the cmsnbiclient.client.Client()
+        :type self.client_object:object
+
+        :raises:
+            ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
+            ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
+        """
+        # Test if the provided object is of a Client instance
+
+        if isinstance(client_object, Client):
             pass
         else:
-            raise ValueError(f"""Query_E7_Data accepts a instance of cms_nbi_client.E7.client.Client, a instance of {type(cms_nbi_connect_object)} was provided""")
-        self.cms_nbi_connect_object = cms_nbi_connect_object
+            raise ValueError(
+                f"""Create() accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)} was passed""")
+        self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
-        if isinstance(self.cms_nbi_connect_object.cms_netconf_url, str):
-            if self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.cms_nbi_connect_object.cms_netconf_url:
+        if isinstance(self.client_object.cms_netconf_url, str):
+            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
                 pass
             else:
-                raise ValueError(f"""uri:{self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.cms_nbi_connect_object.cms_netconf_url:{self.cms_nbi_connect_object.cms_netconf_url}""")
+                raise ValueError(f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.cms_netconf_url must be a str object""")
-        # test if the session_id is a str object
-        if isinstance(self.cms_nbi_connect_object.session_id, str):
-            if self.cms_nbi_connect_object.session_id.isdigit():
+            raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
+        # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
+        if isinstance(self.client_object.session_id, str):
+            if self.client_object.session_id.isdigit():
                 pass
             else:
-                raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a int in a str object""")
+                raise ValueError(f"""self.client_object.session_id must be a int in a str object""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
+            raise ValueError(f"""self.client_object.session_id must be a str object""")
+        # TEST IF THE NETWORK_NM is an empty string
+        if isinstance(network_nm, str):
+            if len(network_nm) >= 1:
+                pass
+            else:
+                raise ValueError(f"""network_nm cannot be an empty str""")
+        else:
+            raise ValueError(f"""network_nm must be a str""")
+        # END PARAMETER TEST BLOCK
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='0',
-            admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='',
+        # ASSIGNING CLASS VARIABLES
+        self.network_nm = network_nm
+        self.http_timeout = http_timeout
+
+    @property
+    def message_id(self):
+        """
+        Description
+        -----------
+        :var self.message_id: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :return: self.message_id
+        """
+        return str(random.getrandbits(random.randint(2, 31)))
+
+    @property
+    def headers(self):
+        """
+        Description
+        -----------
+        :var self.headers: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :return: self.headers
+        """
+        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+
+    @property
+    def cms_user_nm(self):
+        return self.client_object.cms_user_nm
+
+    def ont(self, ont_id='0', admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='',
             us_sdber_rate='5', low_rx_opt_pwr_ne_thresh='-30.0', high_rx_opt_pwr_ne_thresh='-7.0',
             battery_present='false', pse_max_power_budget='30', poe_class_control='disabled'):
         """
@@ -52,105 +105,112 @@ class Create():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
-        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000), submitting '0' requests the ont be built on the first available ID, as described in pg.129 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param ont_id:Identifies the ONT by its E7 scope ID (1 to 64000000), submitting '0' requests the ont be built on the first available ID, as described in pg.129 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ont_sn:str
 
-        :param admin_state: operational status of the created ONT, valid values are [disabled,enabled,enabled-no-alarms], this is explained further in pg.237 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param admin_state:operational status of the created ONT, valid values are [disabled,enabled,enabled-no-alarms], this is explained further in pg.237 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type admin_state:str
 
-        :param ont_sn: identifies the Hexadecimal representation of the ONT serial number, to assign the SN at a later date, input '0', as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param ont_sn:identifies the Hexadecimal representation of the ONT serial number, to assign the SN at a later date, input '0', as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ont_sn:str
 
-        :param reg_id: ONT registration ID that is the RONTA identifier., as described in pg.232 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param reg_id:ONT registration ID that is the RONTA identifier., as described in pg.232 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type reg_id:str
 
-        :param sub_id: Identifies the subscriber ID., as described in pg.63 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param sub_id:Identifies the subscriber ID., as described in pg.63 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type sub_id:str
 
-        :param ont_desc: Identifies the ONT Description
+        :param ont_desc:Identifies the ONT Description
         :type ont_desc:str
 
-        :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface. as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param ontpwe3prof_id:identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface. as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontpwe3prof_id:str
 
-        :param ontprof_id: identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param ontprof_id:identifies the ID of a global or local ONT profile (1 to 50, or one of the default global profiles listed in Global ONT Profile IDs, as described in pg.282-285 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
-        :param us_sdber_rate: Also Known as (Upstream Signal Degraded Error Rate) identifies the threshold for upstream bit errors before an alarm is raised range (2-6), please see pg.31 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :param us_sdber_rate:Also Known as (Upstream Signal Degraded Error Rate) identifies the threshold for upstream bit errors before an alarm is raised range (2-6), please see pg.31 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
         :type us_sdber_rate:str
 
-        :param low_rx_opt_pwr_ne_thresh: Also known as (Low Receive Optical Power Near End Threshold) identifies the lowest optical signal level that the ONT will accept before raising a low-rx-opt-pwr-ne alarm, default value(-30.0) accepts(-30.0 to -7.0), please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :param low_rx_opt_pwr_ne_thresh:Also known as (Low Receive Optical Power Near End Threshold) identifies the lowest optical signal level that the ONT will accept before raising a low-rx-opt-pwr-ne alarm, default value(-30.0) accepts(-30.0 to -7.0), please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
         :type low_rx_opt_pwr_ne_thresh:str
 
-        :param high_rx_opt_pwr_ne_thresh: Also known as (High Receive Optical Power Near End Threshold) identifies the highest optical signal level that the ONT will accept before raising a high-rx-opt-pwr-ne alarm, default value(-7.0) accepts(-30.0 to -7.0) please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
+        :param high_rx_opt_pwr_ne_thresh:Also known as (High Receive Optical Power Near End Threshold) identifies the highest optical signal level that the ONT will accept before raising a high-rx-opt-pwr-ne alarm, default value(-7.0) accepts(-30.0 to -7.0) please see pg.61 & pg.421 of E-Series EXA R3.x Maintenance and Troubleshooting Guide for more information
         :type high_rx_opt_pwr_ne_thresh:str
 
-        :param battery_present: Identifies the requested batter-present state ie(true or false), this will determine if the ont alarms once it identifies the commercial power has been cut, please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :param battery_present:Identifies the requested batter-present state ie(true or false), this will determine if the ont alarms once it identifies the commercial power has been cut, please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
         :type battery_present:str
 
-        :param pse_max_power_budget: This defines the Power Sourcing Equipment (PSE) maximum power budget in Watts that the OLT can source on all Power over Ethernet (PoE) enabled Ethernet UNI ports. The PSE maximum power budget is effective in ONT only if the ownership is OMCI. default value(30) accepts(1 to 90), please see  E7 EXA R3.x GPON Applications Guide for more information
+        :param pse_max_power_budget:This defines the Power Sourcing Equipment (PSE) maximum power budget in Watts that the OLT can source on all Power over Ethernet (PoE) enabled Ethernet UNI ports. The PSE maximum power budget is effective in ONT only if the ownership is OMCI. default value(30) accepts(1 to 90), please see  E7 EXA R3.x GPON Applications Guide for more information
         :type pse_max_power_budget:str
 
-        :param poe_class_control: the port can be classified to the type of Powered Device (PD) that will be connected to the port. Different classes of PD require different amounts of power, accepts 'enabled' or 'disabled', please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
+        :param poe_class_control:the port can be classified to the type of Powered Device (PD) that will be connected to the port. Different classes of PD require different amounts of power, accepts 'enabled' or 'disabled', please see pg.532 of Calix E-Series (E7 OS R3.1/R3.2) Engineering and Planning Guide for more information
         :type poe_class_control:str
 
         :raise:
-            ConnectTimeout: Will be raised if the http(s) connection timesout
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
 
         Example
         -----------
-        IMPORTANT NOTE
+        # IMPORT STATEMENT
+        import cmsnbiclient
+        # IMPORT STATEMENT
 
-        You will need to submit the correct structured dictionary to the int_id param
+        # Create the Client() instance
+        client = cmsnbiclient.Client()
+
+        # Next step is to submit a login request to the CMS server, I will be using an example node
+        login_resp = client.login_netconf(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          cms_user_pass=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['pass_wd'],
+                                          cms_node_ip=client.cms_nbi_config['cms_nodes']['example_node']['connection']['cms_node_ip'],
+                                          uri=client.cms_nbi_config['cms_netconf_uri']['e7'])
+        # if the login_netconf() function is successful '0' is returned  else a response.Models.Response object is returned
+        # you can use the response library to debug the response.models.response object
+        if isinstance(login_resp, str):
+            pass
+        else:
+            print(login_resp.content)
+            raise 'ERROR LOGGING IN'
+        # Assuming the login was successful we will assign a network name to a var for futher use
+        network = 'NTWK-Example_Name'
+
+        # Next we create a Create() instance and pass the cmsnbiclient.client.Client() instance to it
+        create_ncf = cmsnbiclient.E7.Create(client, network_nm=network, http_timeout=5)
+        # Once the Create_E7_Data object is created we can then call the ont() function and create a new ont record
+
+        # When creating an ONT we have a plethora of variables and combination to leverage. I will provide examples for some ONT configurations that I personally use day to day.
+        # THE DEFAULT CMS SERVER CONTAINS A GROUP OF DEFAULT ONT-PROFILES THAT CAN BE USED TO FILL THE ontprof_id variable.
+        # These profiles can be found on pg.136 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        # these profiles are the default and new custom profiles can be created to meet network design requirements.
 
         # CREATE A DEFAULT 812G ONT, USING THE FIRST ONT_ID available on NTWK-Example_Name.
         # Coupled with ont_sn='0', this call will tell the cms server to create a new ont record with no SN allowing us to fill it in later.
-        create_e7_data.ont( message_id='1',
-                            cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                            network_nm='NTWK-Example_Name',
-                            http_timeout=1,
-                            ont_id='0',
-                            admin_state='enabled',
-                            ont_sn='0',
-                            reg_id='',
-                            sub_id='999999',
-                            ont_desc='Example_Description',
-                            ontpwe3prof_id='1',
-                            ontprof_id='162')
+        create_ncf.ont(ont_id='0',
+                       admin_state='enabled',
+                       ont_sn='0',
+                       reg_id='',
+                       sub_id='999999',
+                       ont_desc='Example_Description',
+                       ontpwe3prof_id='1',
+                       ontprof_id='162')
 
         # CREATE A DEFAULT 812G ONT, USING THE FIRST ONT_ID AVAILABLE ONT NTWK-Example_Name
         # With this call we provided the ONT_SN, this will create a record tying the ONT_SN to the ONT provisioning, once the ont is discovered by the E7 the config is pushed.
-        create_e7_data.ont( message_id='1',
-                        cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                        network_nm='NTWK-Example_Name',
-                        http_timeout=1,
-                        ont_id='0',
-                        admin_state='enabled',
-                        ont_sn='0',
-                        reg_id='',
-                        sub_id='999999',
-                        ont_desc='Example_Description',
-                        ontpwe3prof_id='1',
-                        ontprof_id='162')
+        create_ncf.ont(ont_id='0',
+                       admin_state='enabled',
+                       ont_sn='0',
+                       reg_id='',
+                       sub_id='999999',
+                       ont_desc='Example_Description',
+                       ontpwe3prof_id='1',
+                       ontprof_id='162')
         """
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                     <target>
                                         <running/>
@@ -193,13 +253,10 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
@@ -218,8 +275,7 @@ class Create():
             else:
                 return response
 
-    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='', name='',
-             igmp_mode='flood', vlanigmpprof_id='1', dhcp_mode='none', mac_force_forw='false', ip_src_verify='false',
+    def vlan(self, vlan_id='', name='', igmp_mode='flood', vlanigmpprof_id='1', dhcp_mode='none', mac_force_forw='false', ip_src_verify='false',
              mac_learn='true', ae_ont_discovery='false', pon_tlan='false', pon_hairpin='false', igmp_pbit='pbit-4',
              dhcp_svc_profile={'dhcp-svc-prof': ''}, option82_enable='true', eth_opt82prof_id='2',
              gpon_opt82prof_id='1', mobility='false', pppoe_profile={'pppoe-prof': ''}):
@@ -230,18 +286,6 @@ class Create():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id: Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
@@ -272,7 +316,7 @@ class Create():
         :param pon_tlan: enables or disables pon-tlan perameter, as described in pg.43 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type pon_tlan:str
 
-        :param pon_hairpin:(Applicable for TLAN and T1/E3 PWE3 services) this allows for traffice to be hair-pin back to the same olt on a differing or same uni, this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        :param pon_hairpin:(Applicable for TLAN and T1/E3 PWE3 services) this allows for traffic to be hair-pin back to the same olt on a differing or same uni, this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
         :type pon_hairpin:str
 
         :param igmp_pbit: The P-bit value(pbit-0 through pbit-7) for IGMP traffic that passes through the system, allowing the traffic type to be treated differently as it passes through the network. this is explained better in pg.337 of Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
@@ -299,7 +343,61 @@ class Create():
         :raise:
             ConnectTimeout: Will be raised if the http(s) connection timesout
 
-        :return: vlan() function will return a dict on a successfull call, and a request.Models.Response object on a failed call
+        :return: vlan() function will return a dict on a success`full call, and a request.Models.Response object on a failed call
+
+        Example
+        -----------
+        # IMPORT STATEMENT
+        import cmsnbiclient
+        # IMPORT STATEMENT
+
+        # Create the CMS_NBI_Client() instance
+        client = cmsnbiclient.Client()
+
+        # Next step is to submit a login request to the CMS server, I will be using an example node
+        login_resp = client.login_netconf(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
+                                          cms_user_pass=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['pass_wd'],
+                                          cms_node_ip=client.cms_nbi_config['cms_nodes']['example_node']['connection']['cms_node_ip'],
+                                          uri=client.cms_nbi_config['cms_netconf_uri']['e7'])
+        # if the login_netconf() function is successful '0' is returned  else a response.Models.Response object is returned
+        # you can use the response library to debug the response.models.response object
+        if isinstance(login_resp, str):
+            pass
+        else:
+            print(login_resp.content)
+            raise 'ERROR LOGGING IN'
+        # Assigning the network_nm str
+        network = 'NTWK-Example_Name'
+
+        # Next we create a Create_E7_Data instance and pass the CMS_NBI_Client instance to it
+        create_ncf = cmsnbiclient.E7.Create(client, network_nm=network, http_timeout=5)
+
+        # Once the Create_E7_Data object is created we can then call the vlan function and create a vlan with the provided parameters
+        #################################################################################################################
+        # CREATE DEFAULT VLAN PER DOCUMENTATION IN pg.335-338 Calix E-Series (E7 OS R2.5) Engineering and Planning Guide
+        create_ncf.vlan(vlan_id='15', name='Example_VLAN')
+
+        # CREATE A TLAN USED FOR MEF E-Line,E-LAN, E-TREE circuits
+        create_ncf.vlan(vlan_id='15',
+                        name='Example_TLAN',
+                        pon_tlan='true')
+
+        # CREATE A VLAN USED FOR SERVING PPPOE TRAFFIC USING PPPOE_PROFILE WITH AN ID OF 1
+        create_ncf.vlan(vlan_id='15',
+                        name='Example_PPPOE_VLAN',
+                        pppoe_profile={'pppoe-prof': {'type': 'PppoeProf', 'id': {'pppoeprof': '1'}}})
+
+        # CREATE A VLAN USED FOR SERVING HSI DHCP SERVICES WITHOUT USING A DHCP_SERVICE
+        create_ncf.vlan(vlan_id='15',
+                        name='Example_Basic_DHCP',
+                        dhcp_mode='snoop')
+
+        # CREATE A VLAN USED FOR SERVING HSI DHCP SERVICES USING THE DHCP_SERVICE WITH A PROFILE ID OF 1
+        create_ncf.vlan(vlan_id='15',
+                        name='Example_Complex_DHCP',
+                        dhcp_mode='proxy',
+                        dhcp_svc_profile={'dhcp-svc-prof': {'type': 'DhcpSvcProf', 'id': {'dhcpsvcprof': '1'}}})
+
         """
         if isinstance(pppoe_profile['pppoe-prof'], dict):
             _pppoe_profile = xmltodict.unparse(pppoe_profile, full_document=False)
@@ -313,7 +411,7 @@ class Create():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                     <target>
                                         <running/>
@@ -365,13 +463,10 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
@@ -390,8 +485,7 @@ class Create():
             else:
                 return response
 
-    def vlan_members(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='',
-                     vlan_member_id='0', int_id={' ': ''}):
+    def vlan_members(self, vlan_id='', vlan_member_id='0', int_id={' ': ''}):
         """
         Description
         -----------
@@ -399,18 +493,6 @@ class Create():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id:  Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
@@ -506,7 +588,7 @@ class Create():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                     <target>
                                         <running/>
@@ -530,13 +612,10 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
@@ -556,7 +635,7 @@ class Create():
             else:
                 return response
 
-    def ethsvc_ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1):
+    def ethsvc_ont(self):
         """
         Description
         -----------
@@ -564,17 +643,6 @@ class Create():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
 
         :return:
         """

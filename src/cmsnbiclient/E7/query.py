@@ -1,47 +1,96 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, Client)
+from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
 # IMPORT STATEMENTS
 
 
 class Query():
 
-    def __init__(self, cms_nbi_connect_object):
+    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
         """
-            Description
-            -----------
-            Class (Query_E7_Data) is the query constructor/posting class for the E7 CMS NETCONF NBI
+        Description
+        -----------
+        Class (Query) is the query constructor/posting class for the E7 CMS NETCONF NBI
 
-            Attributes
-            ----------
-            :var self.cms_nbi_connect_object: accepts object created by the CMS_NBI_Client
-            :type self.cms_nbi_connect_object: object
-            """
+        Attributes
+        ----------
+        :param client_object: accepts object created by the cms_nbi_client.client.Client()
+        :type client_object:Client
+
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :var self.message_id: a positive int up to 32bit is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type self.message_id:str
+
+        :var self.client_object: accepts object created by the cmsnbiclient.client.Client()
+        :type self.client_object: object
+
+        :raises:
+            ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
+            ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
+        """
         # Test if the provided object is of a Client instance
 
-        if isinstance(cms_nbi_connect_object, Client):
+        if isinstance(client_object, Client):
             pass
         else:
-            raise ValueError(f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(cms_nbi_connect_object)}""")
-        self.cms_nbi_connect_object = cms_nbi_connect_object
+            raise ValueError(
+                f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(client_object)}""")
+        self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
-        if isinstance(self.cms_nbi_connect_object.cms_netconf_url, str):
-            if self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.cms_nbi_connect_object.cms_netconf_url:
+        if isinstance(self.client_object.cms_netconf_url, str):
+            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
                 pass
             else:
                 raise ValueError(
-                    f"""uri:{self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.cms_nbi_connect_object.cms_netconf_url:{self.cms_nbi_connect_object.cms_netconf_url}""")
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.cms_netconf_url must be a str object""")
-        # test if the session_id is a str object
-        if isinstance(self.cms_nbi_connect_object.session_id, str):
-            if self.cms_nbi_connect_object.session_id.isdigit():
+            raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
+        # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
+        if isinstance(self.client_object.session_id, str):
+            if self.client_object.session_id.isdigit():
                 pass
             else:
-                raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a int in a str object""")
+                raise ValueError(f"""self.client_object.session_id must be a int in a str object""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
+            raise ValueError(f"""self.client_object.session_id must be a str object""")
+        # TEST IF THE NETWORK_NM is an empty string
+        if isinstance(network_nm, str):
+            if len(network_nm) >= 1:
+                pass
+            else:
+                raise ValueError(f"""network_nm cannot be an empty str""")
+        else:
+            raise ValueError(f"""network_nm must be a str""")
+        # END PARAMETER TEST BLOCK
 
-    def system(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1):
+        # ASSIGNING CLASS VARIABLES
+        self.network_nm = network_nm
+        self.http_timeout = http_timeout
+
+    @property
+    def message_id(self):
+        """
+        Description
+        -----------
+        :var self.message_id: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :return: self.message_id
+        """
+        return str(random.getrandbits(random.randint(2, 31)))
+
+    @property
+    def headers(self):
+        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+
+    @property
+    def cms_user_nm(self):
+        return self.client_object.cms_user_nm
+
+    def system(self):
         """
         Description
         -----------
@@ -49,17 +98,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
 
         :raise:
             ConnectTimeout: Will be raised if the http(s) connection timesout
@@ -69,7 +107,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                             <soapenv:Body>
-                                <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                     <get>
                                         <filter type="subtree">
                                             <top>
@@ -83,18 +121,15 @@ class Query():
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -109,8 +144,7 @@ class Query():
             else:
                 return response
 
-    def system_children(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                        after_filter={'': ''}):
+    def system_children(self, after_filter={'': ''}):
         """
         Description
         -----------
@@ -118,18 +152,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
@@ -146,7 +168,7 @@ class Query():
         payload = f"""
         <soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
         <soapenv:Body>
-        <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+        <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
         <get-config>
         <source>
         <running/>
@@ -165,18 +187,15 @@ class Query():
         </soapenv:Body>
         </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -207,12 +226,9 @@ class Query():
                     self.resp_system_children = []
                     self.resp_system_children.extend(resp_dict)
                 # Recursive method for pulling the rest of the children
-                return self.system_children(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                            http_timeout=http_timeout, after_filter=_after_filter_)
-            elif pydash.objects.has(resp_dict,
-                                    'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                return self.system_children(after_filter=_after_filter_)
+            elif pydash.objects.has(resp_dict,'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
                 try:
                     if isinstance(self.resp_system_children, list):
                         self.resp_system_children.extend(resp_dict)
@@ -228,8 +244,7 @@ class Query():
             else:
                 return response
 
-    def system_children_discont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                                after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_discont(self,after_filter={'': ''}, attr_filter={'': ''}):
         """
         Description
         -----------
@@ -237,18 +252,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
@@ -290,7 +293,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                             <soapenv:Body>
-                                <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                     <get>
                                         <filter type="subtree">
                                             <top>
@@ -311,18 +314,15 @@ class Query():
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -341,9 +341,7 @@ class Query():
                 except:
                     self.resp_system_children_discont = []
                     self.resp_system_children_discont.extend(resp_dict)
-                return self.system_children_discont(message_id=message_id, cms_user_nm=cms_user_nm,
-                                                    network_nm=network_nm, http_timeout=http_timeout,
-                                                    after_filter=after_filter_, attr_filter=attr_filter)
+                return self.system_children_discont(after_filter=after_filter_, attr_filter=attr_filter)
             elif pydash.objects.has(resp_dict,
                                     'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
                 resp_dict = \
@@ -362,8 +360,7 @@ class Query():
                     return resp_system_discont
 
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
-                if resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object'][
-                    'children'] == None:
+                if resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children'] == None:
                     try:
                         isinstance(self.resp_system_children_discont, list)
                         resp_system_discont = self.resp_system_children_discont
@@ -377,8 +374,7 @@ class Query():
             else:
                 return response
 
-    def system_children_ontprof(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                                after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_ontprof(self, after_filter={'': ''}, attr_filter={'': ''}):
         """
         Description
         -----------
@@ -386,18 +382,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
@@ -431,7 +415,7 @@ class Query():
             _attr_filter = '<attr-filter></attr-filter>'
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -455,18 +439,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -486,11 +467,8 @@ class Query():
                 except:
                     self.resp_system_children_ontprof = []
                     self.resp_system_children_ontprof.extend(resp_dict)
-                return self.system_children_ontprof(message_id=message_id, cms_user_nm=cms_user_nm,
-                                                    network_nm=network_nm, http_timeout=http_timeout,
-                                                    after_filter=_after_filter_, attr_filter=attr_filter)
-            elif pydash.objects.has(resp_dict,
-                                    'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
+                return self.system_children_ontprof(after_filter=_after_filter_, attr_filter=attr_filter)
+            elif pydash.objects.has(resp_dict,'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
                 resp_dict = \
                 resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
                 try:
@@ -513,8 +491,7 @@ class Query():
             else:
                 return response
 
-    def system_children_ontpwe3prof(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                                    after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_ontpwe3prof(self, after_filter={'': ''}, attr_filter={'': ''}):
         """
         Description
         -----------
@@ -522,18 +499,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
@@ -562,7 +527,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -586,18 +551,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -617,9 +579,7 @@ class Query():
                 except:
                     self.resp_system_children_ontpwe3prof = []
                     self.resp_system_children_ontpwe3prof.extend(resp_dict)
-                return self.system_children_ontpwe3prof(message_id=message_id, cms_user_nm=cms_user_nm,
-                                                        network_nm=network_nm, http_timeout=http_timeout,
-                                                        after_filter=_after_filter_, attr_filter=attr_filter)
+                return self.system_children_ontpwe3prof(after_filter=_after_filter_, attr_filter=attr_filter)
             elif pydash.objects.has(resp_dict,
                                     'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
                 resp_dict = \
@@ -644,8 +604,7 @@ class Query():
             else:
                 return response
 
-    def system_children_vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                             after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_vlan(self,after_filter={'': ''}, attr_filter={'': ''}):
         """
         Description
         -----------
@@ -653,18 +612,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
 
@@ -690,7 +637,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -714,18 +661,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -744,9 +688,7 @@ class Query():
                 except:
                     self.resp_system_children_vlan = []
                     self.resp_system_children_vlan.extend(resp_dict)
-                return self.system_children_vlan(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                                 http_timeout=http_timeout, after_filter=last_entry,
-                                                 attr_filter=attr_filter)
+                return self.system_children_vlan(after_filter=last_entry, attr_filter=attr_filter)
 
             elif pydash.objects.has(resp_dict,
                                     'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
@@ -777,8 +719,7 @@ class Query():
             else:
                 return response
 
-    def ont_children_ethsvc(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='',
-                            after_filter={'': ''}, attr_filter={'': ''}):
+    def ont_children_ethsvc(self, ont_id='', after_filter={'': ''}, attr_filter={'': ''}):
         """
         Description
         -----------
@@ -788,18 +729,6 @@ class Query():
         ----------
         :param ont_id: ONT ID value
         :type: ont_id:str
-
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
 
         :param after_filter: this parameter is a dict of the child object to input in the <after> element as shown in pg.18 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type after_filter:dict
@@ -954,7 +883,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -980,18 +909,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1014,8 +940,7 @@ class Query():
                 except:
                     self.resp_ont_children_ethsvc = []
                     self.resp_ont_children_ethsvc.extend(resp_dict)
-                return self.ont_children_ethsvc(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                                http_timeout=http_timeout, ont_id=ont_id, after_filter=__after_filter,
+                return self.ont_children_ethsvc(ont_id=ont_id, after_filter=__after_filter,
                                                 attr_filter=attr_filter)
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
                 resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object'][
@@ -1046,7 +971,7 @@ class Query():
             else:
                 return response
 
-    def ontprof(self, message_id='1', cms_user_nm='rootgod', network_nm='', ontprof_id='', http_timeout=1):
+    def ontprof(self, ontprof_id=''):
         """
         Description
         -----------
@@ -1054,18 +979,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param ontprof_id: this parameter identifies the ID of a pre-defined local ONT profile, which can be a custom profile from 1 to 50, or one of the default profile IDs listed in E7 GPON ONT Profile IDs, as described in pg.140 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontprof_id:str
 
@@ -1076,7 +989,7 @@ class Query():
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -1096,18 +1009,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS-NBI-CLIENT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1121,7 +1031,7 @@ class Query():
             else:
                 return response
 
-    def discont(self, message_id='1', cms_user_nm='rootgod', network_nm='', ont_sn='', http_timeout=1):
+    def discont(self, ont_sn=''):
         """
         Description
         -----------
@@ -1129,18 +1039,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param ont_sn: this parameter is the SN of the ont being requested, for calix ONTs this is formed by CXNK+
         :type ont_sn:str
 
@@ -1152,7 +1050,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get>
                                     <filter>
                                         <top>
@@ -1169,18 +1067,15 @@ class Query():
                         </soapenv:Body>
                        </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1194,7 +1089,7 @@ class Query():
             else:
                 return response
 
-    def ontpwe3prof(self, message_id='1', cms_user_nm='rootgod', network_nm='', ontpwe3prof_id='1', http_timeout=1):
+    def ontpwe3prof(self, ontpwe3prof_id='1'):
         """
         Description
         -----------
@@ -1202,18 +1097,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param ontpwe3prof_id: identifies the ID of the profile that sets the ONT PWE3 mode. Use 1 (also the default, if not supplied) for the system-default profile, which is set to use either T1 or E1 mode in the management interface, as described in pg.141 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ontpwe3prof_id:str
 
@@ -1224,7 +1107,7 @@ class Query():
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -1244,18 +1127,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1269,7 +1149,7 @@ class Query():
             else:
                 return response
 
-    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', vlan_id='1', http_timeout=1):
+    def vlan(self, vlan_id='1'):
         """
         Description
         -----------
@@ -1277,18 +1157,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id: Identifies the VLAN: 2 to 4093, excluding any reserved VLANs, as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
@@ -1299,7 +1167,7 @@ class Query():
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <get-config>
                                     <source>
                                         <running/>
@@ -1319,18 +1187,15 @@ class Query():
                         </soapenv:Body>
                        </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1344,8 +1209,7 @@ class Query():
             else:
                 return response
 
-    def show_ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, action_args={' ': ''},
-                 after_filter={' ': ''}):
+    def show_ont(self, action_args={' ': ''}, after_filter={' ': ''}):
         """
         Description
         -----------
@@ -1353,18 +1217,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param action_args: similar to attr_filter param in other query functions, action_args acts as a filter for the query
         :type action_args:dict
 
@@ -1486,7 +1338,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <action>
                                     <action-type>show-ont</action-type>
                                     <action-args>
@@ -1498,18 +1350,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1527,8 +1376,7 @@ class Query():
                 except:
                     self.resp_show_ont = []
                     self.resp_show_ont.append(resp_dict)
-                return self.show_ont(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                     http_timeout=http_timeout, after_filter=_after_filter_, action_args=action_args)
+                return self.show_ont( after_filter=_after_filter_, action_args=action_args)
 
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match'):
                 resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
@@ -1557,8 +1405,7 @@ class Query():
             else:
                 return response
 
-    def show_dhcp_leases(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1,
-                         action_args={' ': ''}, after_filter={' ': ''}):
+    def show_dhcp_leases(self, action_args={' ': ''}, after_filter={' ': ''}):
         """
         Description
         -----------
@@ -1566,18 +1413,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param action_args: similar to attr_filter param in other query functions, action_args acts as a filter for the query
         :type action_args:dict
 
@@ -1646,7 +1481,7 @@ class Query():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <action>
                                     <action-type>show-dhcp-leases</action-type>
                                     <action-args>
@@ -1658,18 +1493,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1687,9 +1519,7 @@ class Query():
                 except NameError:
                     self.resp_show_dhcp_leases = []
                     self.resp_show_dhcp_leases.extend(resp_dict)
-                return self.show_dhcp_leases(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                             http_timeout=http_timeout, action_args=action_args,
-                                             after_filter=_after_filter_)
+                return self.show_dhcp_leases(action_args=action_args, after_filter=_after_filter_)
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.entry'):
                 resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['entry']
                 try:
@@ -1710,8 +1540,7 @@ class Query():
             else:
                 return response
 
-    def show_vlan_members(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='1',
-                          after_filter={' ': ''}):
+    def show_vlan_members(self, vlan_id='1', after_filter={' ': ''}):
         """
         Description
         -----------
@@ -1719,18 +1548,6 @@ class Query():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id: the vlan id
         :type vlan_id:str
 
@@ -1748,7 +1565,7 @@ class Query():
             _after_filter = """"""
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <action>
                                     <action-type>show-vlan-intforeaps</action-type>
                                     <action-args>
@@ -1765,18 +1582,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO: IMPLEMENT HTTPS HANDLING
             pass
 
         if response.status_code != 200:
@@ -1794,8 +1608,7 @@ class Query():
                 except:
                     self.resp_show_vlan_members = []
                     self.resp_show_vlan_members.extend(resp_dict)
-                return self.show_vlan_members(message_id=message_id, cms_user_nm=cms_user_nm, network_nm=network_nm,
-                                              http_timeout=http_timeout, vlan_id=vlan_id, after_filter=__after_filter)
+                return self.show_vlan_members(vlan_id=vlan_id, after_filter=__after_filter)
             elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match'):
                 resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
                 try:

@@ -1,46 +1,93 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, Client)
+from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
 # IMPORT STATEMENTS
 
 
 class Delete():
 
-    def __init__(self, cms_nbi_connect_object):
+    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
         """
-                Description
-                -----------
-                Class (Delete) is the delete query constructor/posting class for the E7 CMS NETCONF NBI
+        Description
+        -----------
+        Class (Delete) is the delete query constructor/posting class for the E7 CMS NETCONF NBI
 
-                Attributes
-                ----------
-                :var self.cms_nbi_connect_object: accepts object created by the cms_nbi_client.client.Client()
-                :type self.cms_nbi_connect_object: object
-                """
+        Attributes
+        ----------
+        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :var self.message_id: a positive int up to 32bit is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type self.message_id:str
+
+        :var self.client_object: accepts object created by the cms_nbi_client.client.Client()
+        :type self.client_object: object
+
+        :raises:
+            ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
+            ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
+
+        """
         # Test if the provided object is of a CMS_NBI_Client instance
 
-        if isinstance(cms_nbi_connect_object, Client):
+        if isinstance(client_object, Client):
             pass
         else:
-            raise ValueError(f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(cms_nbi_connect_object)}""")
-        self.cms_nbi_connect_object = cms_nbi_connect_object
+            raise ValueError(f"""Delete accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)}""")
+        self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
-        if isinstance(self.cms_nbi_connect_object.cms_netconf_url, str):
-            if self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.cms_nbi_connect_object.cms_netconf_url:
+        if isinstance(self.client_object.cms_netconf_url, str):
+            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
                 pass
             else:
-                raise ValueError(f"""uri:{self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.cms_nbi_connect_object.cms_netconf_url:{self.cms_nbi_connect_object.cms_netconf_url}""")
+                raise ValueError(f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.cms_netconf_url must be a str object""")
+            raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
         # test if the session_id is a str object
-        if isinstance(self.cms_nbi_connect_object.session_id, str):
-            if self.cms_nbi_connect_object.session_id.isdigit():
+        if isinstance(self.client_object.session_id, str):
+            if self.client_object.session_id.isdigit():
                 pass
             else:
-                raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a int in a str object""")
+                raise ValueError(f"""self.client_object.session_id must be a int in a str object""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
+            raise ValueError(f"""self.client_object.session_id must be a str object""")
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', force='false'):
+        # TEST IF THE NETWORK_NM is an empty string
+        if isinstance(network_nm, str):
+            if len(network_nm) >= 1:
+                pass
+            else:
+                raise ValueError(f"""network_nm cannot be an empty str""")
+        else:
+            raise ValueError(f"""network_nm must be a str""")
+        # END PARAMETER TEST BLOCK
+
+        # ASSIGNING CLASS VARIABLES
+        self.network_nm = network_nm
+        self.http_timeout = http_timeout
+
+    @property
+    def message_id(self):
+        """
+        Description
+        -----------
+        :var self.message_id: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :return: self.message_id
+        """
+        return str(random.getrandbits(random.randint(2, 31)))
+
+    @property
+    def headers(self):
+        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+
+    @property
+    def cms_user_nm(self):
+        return self.client_object.cms_user_nm
+
+    def ont(self, ont_id='', force='false'):
         """
         Description
         -----------
@@ -48,18 +95,6 @@ class Delete():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000), as described in pg.129 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type ont_id:str
 
@@ -82,7 +117,7 @@ class Delete():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                     <target>
                                         <running/>
@@ -102,13 +137,10 @@ class Delete():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
@@ -127,7 +159,7 @@ class Delete():
             else:
                 return response
 
-    def vlan(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='', force='false'):
+    def vlan(self, vlan_id='', force='false'):
         """
         Description
         -----------
@@ -135,18 +167,6 @@ class Delete():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id: Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
@@ -169,7 +189,7 @@ class Delete():
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                                 <soapenv:Body>
-                                    <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                                    <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                         <edit-config>
                                             <target>
                                                 <running/>
@@ -189,13 +209,10 @@ class Delete():
                                 </soapenv:Body>
                             </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e
@@ -214,8 +231,7 @@ class Delete():
             else:
                 return response
 
-    def vlanmem(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, vlan_id='',
-                vlan_member_id='', force='false'):
+    def vlanmem(self, vlan_id='', vlan_member_id='', force='false'):
         """
         Description
         -----------
@@ -223,18 +239,6 @@ class Delete():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param vlan_id:  Identifies the VLAN: 2 to 4093 (Except for 1002-1005 which are reserved for E7 operation.), excluding any reserved VLANs as described in pg.50 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :type vlan_id:str
 
@@ -252,7 +256,7 @@ class Delete():
         """
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                     <target>
                                         <running/>
@@ -273,13 +277,10 @@ class Delete():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
 
                 raise e

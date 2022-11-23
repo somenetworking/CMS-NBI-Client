@@ -1,47 +1,95 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, Client)
+from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
 # IMPORT STATEMENTS
 
 
 class Update():
 
-    def __init__(self, cms_nbi_connect_object):
+    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
         """
-                Description
-                -----------
-                Class (Update) is the update/merge query constructor/posting class for the E7 CMS NETCONF NBI
+        Description
+        -----------
+        Class (Update) is the update/merge query constructor/posting class for the E7 CMS NETCONF NBI
 
-                Attributes
-                ----------
-                :var self.cms_nbi_connect_object: accepts object created by the cms_nbi_client.client.Client()
-                :type self.cms_nbi_connect_object: object
-                """
-        # Test if the provided object is of a CMS_NBI_Client instance
+        Attributes
+        ----------
+        :param client_object:accepts object created by the cms_nbi_client.client.Client()
+        :type client_object:Client
 
-        if isinstance(cms_nbi_connect_object, Client):
+        :param network_nm:this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type network_nm:str
+
+        :param http_timeout:this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :type http_timeout:int
+
+        :var self.message_id:a positive int up to 32bit is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :type self.message_id:str
+
+        :var self.client_object:accepts object created by the cmsnbiclient.client.Client()
+        :type self.client_object:object
+
+        :raises:
+            ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
+            ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
+        """
+        # Test if the provided object is of a Client instance
+
+        if isinstance(client_object, Client):
             pass
         else:
-            raise ValueError(f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(cms_nbi_connect_object)}""")
-        self.cms_nbi_connect_object = cms_nbi_connect_object
+            raise ValueError(f"""Update() accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)} was passed instead""")
+        self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
-        if isinstance(self.cms_nbi_connect_object.cms_netconf_url, str):
-            if self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.cms_nbi_connect_object.cms_netconf_url:
+        if isinstance(self.client_object.cms_netconf_url, str):
+            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
                 pass
             else:
                 raise ValueError(
-                    f"""uri:{self.cms_nbi_connect_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.cms_nbi_connect_object.cms_netconf_url:{self.cms_nbi_connect_object.cms_netconf_url}""")
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.cms_netconf_url must be a str object""")
-        # test if the session_id is a str object
-        if isinstance(self.cms_nbi_connect_object.session_id, str):
-            if self.cms_nbi_connect_object.session_id.isdigit():
+            raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
+        # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
+        if isinstance(self.client_object.session_id, str):
+            if self.client_object.session_id.isdigit():
                 pass
             else:
-                raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a int in a str object""")
+                raise ValueError(f"""self.client_object.session_id must be a int in a str object""")
         else:
-            raise ValueError(f"""self.cms_nbi_connect_object.session_id must be a str object""")
+            raise ValueError(f"""self.client_object.session_id must be a str object""")
+        # TEST IF THE NETWORK_NM is an empty string
+        if isinstance(network_nm, str):
+            if len(network_nm) >= 1:
+                pass
+            else:
+                raise ValueError(f"""network_nm cannot be an empty str""")
+        else:
+            raise ValueError(f"""network_nm must be a str""")
+        # END PARAMETER TEST BLOCK
 
-    def ont(self, message_id='1', cms_user_nm='rootgod', network_nm='', http_timeout=1, ont_id='', admin_state='', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='', ontprof_id='', us_sdber_rate='', low_rx_opt_pwr_ne_thresh='', high_rx_opt_pwr_ne_thresh='', battery_present='', pse_max_power_budget='', poe_class_control='', replace_sn='0'):
+        # ASSIGNING CLASS VARIABLES
+        self.network_nm = network_nm
+        self.http_timeout = http_timeout
+
+    @property
+    def message_id(self):
+        """
+        Description
+        -----------
+        :var self.message_id: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :return: self.message_id
+        """
+        return str(random.getrandbits(random.randint(2, 31)))
+
+    @property
+    def headers(self):
+        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
+                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+
+    @property
+    def cms_user_nm(self):
+        return self.client_object.cms_user_nm
+
+    def ont(self, ont_id='', admin_state='', ont_sn='', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='', ontprof_id='', us_sdber_rate='', low_rx_opt_pwr_ne_thresh='', high_rx_opt_pwr_ne_thresh='', battery_present='', pse_max_power_budget='', poe_class_control='', replace_sn='0'):
         """
         Description
         -----------
@@ -49,18 +97,6 @@ class Update():
 
         Attributes
         ----------
-        :param message_id: is the message_id used by the cms server to correlate http responses, if None is provided and self.cms_nbi_connect_object.message_id is None the default of 1 will be used
-        :type message_id:str
-
-        :param cms_user_nm: this parameter contains the username for the CMS USER ACCOUNT utilized in the interactions, this is described in pg.15 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type cms_user_nm:str
-
-        :param network_nm: this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
-        :type network_nm:str
-
-        :param http_timeout: this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
-        :type http_timeout:int
-
         :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000),
         :type ont_sn:str
 
@@ -107,7 +143,7 @@ class Update():
         :type replace_sn:str
 
         :raise:
-            ConnectTimeout: Will be raised if the http(s) connection timesout
+            ConnectTimeout: Will be raised if the http(s) connection times-out
             ValueError: Will be raised if the ont_id is not an int str ie whole number
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
@@ -115,54 +151,44 @@ class Update():
         Example
         ______
 
-        Next we create an Update instance and pass the cms_nbi_client.Client() instance to it
-        update_e7_data = Update(client)
-        Once the Update_E7_Data object is created we can then call the ont() function and update ont variables for a specific ont
+        Next we create a cmsnbiclient.E7.Update() instance and pass the cms_nbi_client.Client() instance to it
+        netconf_update = cmsnbiclient.E7.Update(client, network_nm='NTWK-Example_Network, http_timeout=5)
+        Once the netconf_update object is created we can then call the ont() function and update ont variables for a specific ont
         For any updated query an ont_id must be provided in the ont_id var
-        Only the var being updated needs to be supplied
+        Only the var(s) being updated needs to be supplied
 
         Updating the ont 1 admin_state>>disabled
-        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                           network_nm='NTWK-Example_Network',
-                           ont_id='1',
+        netconf_update.ont(ont_id='1',
                            admin_state='disabled')
 
         Updating the ont 2 Subscriber Id  && Description
-        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                           network_nm='NTWK-Example_Network',
-                           ont_id='2',
+        netconf_update.ont(ont_id='2',
                            sub_id='9999999',
                            ont_desc='example_ont')
 
         Updating ont 4 to False on the battery_present
-        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                           network_nm='NTWK-Example_Network',
-                           ont_id='4',
+        netconf_update.ont(ont_id='4',
                            battery_present='false')
 
         Replace an ONT with a new ont
         this requires two calls one to unlink the cxnk and another to link a new cxnk
-        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                           network_nm='NTWK-Example_Network',
-                           ont_id='4',
+        netconf_update.ont(ont_id='4',
                            ont_sn='0',
                            replace_sn='1')
 
-        update_e7_data.ont(cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                           network_nm='NTWK-Example_Network',
-                           ont_id='4',
+        netconf_update.ont(ont_id='4',
                            ont_sn='9999')
         """
         # Since i dont know how to filter parameters that are empty this is what im doing , hopefully it works
         # using change_var_list as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
-        # before using xmltodict.unparse to convert it to an xml str
+        # before using xmltodict.unparse to convert it to a xml str
         par_inputs = vars()
         if isinstance(par_inputs['ont_id'], str):
             if par_inputs['ont_id'].isdigit and not par_inputs['ont_id'] == '0':
                 pass
             else:
-                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR 1..2..3..ie""")
-
+                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000""")
+        # APPLYING STRUCTURE TO THE PROVIDED PARAMETERS BEFORE PARSING, THIS IS DESIGN SO XMLTODICT CAN UNPARSE THEM INTO THE CORRECT XML FORMAT
         change_var = {'admin': par_inputs['admin_state'],
                       'battery-present': par_inputs['battery_present'],
                       'descr': par_inputs['ont_desc'],
@@ -177,8 +203,10 @@ class Update():
                       'subscr-id': par_inputs['sub_id'],
                       'us-sdber-rate': par_inputs['us_sdber_rate'],
                       'linked-pon': par_inputs['replace_sn']}
-
+        # REMOVING ANY Key/Value pair that contains an empty value
         change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        # REMOVING ANY KEY/VALUE pairs where the lowest value is empty
+        # FOR link-pon it sets it to None if the value is 1(True)
         if not change_var['ontprof']['id']['ontprof']:
             change_var.pop('ontprof')
         if not change_var['pwe3prof']['id']['ontpwe3prof']:
@@ -191,7 +219,7 @@ class Update():
         chang_xml = xmltodict.unparse(change_var, full_document=False)
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
-                            <rpc message-id="{message_id}" nodename="{network_nm}" username="{cms_user_nm}" sessionid="{self.cms_nbi_connect_object.session_id}">
+                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                 <edit-config>
                                 <target>
                                 <running/>
@@ -211,22 +239,17 @@ class Update():
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        headers = {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
-
-        if 'https' not in self.cms_nbi_connect_object.cms_netconf_url:
+        if 'https' not in self.client_object.cms_netconf_url[:5]:
             try:
-                response = requests.post(url=self.cms_nbi_connect_object.cms_netconf_url, headers=headers, data=payload,
-                                         timeout=http_timeout)
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
-            # will need to research how to implement https connection with request library
+            # TODO:Need to implement HTTPS handling as the destination port will be different than the http port
             pass
 
         if response.status_code != 200:
-            # if the response code is not 200 FALSE and the request.response object is returned.
+            # if the response code is not 200 FALSE and the request.Models.response object is returned.
             return response
 
         else:
