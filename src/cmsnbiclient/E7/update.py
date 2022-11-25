@@ -258,3 +258,43 @@ class Update():
                 return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
             else:
                 return response
+
+    def ont_geth(self, ont_id: str = '', ontethge: str = ''):
+        """
+        Description
+        -----------
+        function ont_geth() performs a http/xml  query for the provided network_nm(e7_node) requesting the current data for the specified ontethge
+
+        Attributes
+        ----------
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000).
+
+        :param ontethge: Identifies the ONT-GE port number (1 to 8).
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                <soapenv:Body>
+                                    <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                        <edit-config>
+                                        <target>
+                                        <running/>
+                                        </target>
+                                            <config>
+                                                <top>
+                                                    <object operation="merge" get-config="true">
+                                                        <type>Ont</type>
+                                                        <id>
+                                                            <ont>{ont_id}</ont>
+                                                        </id>
+                                                    </object>
+                                                </top>
+                                            </config>
+                                        </edit-config>
+                                    </rpc>
+                                    </soapenv:Body>
+                                </soapenv:Envelope>"""
