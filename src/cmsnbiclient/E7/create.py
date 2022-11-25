@@ -635,7 +635,7 @@ class Create():
             else:
                 return response
 
-    def ethsvc_ont(self):
+    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1', admin_state: str = 'enabled', descr: str = '', svctagaction_id: str = '', bwprof_id: str = '', out_tag_id: str = 'none', inner_tag_id: str = 'none', mcast_prof_id: str = '0', pon_cos_id: str = 'derived', us_cir_override: str = 'none', us_pir_override: str = 'none',  ds_pir_override: str = 'none', hot_swap: str = 'false', pppoe_force_discard: str = 'false'):
         """
         Description
         -----------
@@ -643,7 +643,183 @@ class Create():
 
         Attributes
         ----------
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000).
 
-        :return:
+        :param ontslot: Identifies the ONT port type using one of the following {"Gigabit Ethernet port ": "3", "HPNA Ethernet port": "4", "Fast Ethernet port": "5" }
+
+        :param ontethany: Identifies the ONT port number (1 to 8).
+
+        :param ethsvc: Identifies the data service (1 to 12; typically 1 to 8 for data service).
+
+        :param admin_state: Administrative status of the targeted ONT port (disabled, enabled, enabled-no-alarms).
+
+        :param descr: Description of service.
+
+        :param svctagaction_id: Identifies the ID of a predefined global service tag action (1 to 255).
+
+        :param bwprof_id: Identifies the ID of a global or local Ethernet bandwidth profile (1 to 300). The CMS XML NBI may be used to provision services using local profile IDs. Previously, the CMS XML NBI accepted only global profile IDs.The local ID is specified using the syntax "local:X" where "X" is the local profile ID number.The local ID is specified using the syntax "local:X" where "X" is the local profile ID number.
+
+        :param out_tag_id: "outer"(S-TAG) QinQ(802.1ad) VLAN IDs (2 to 4093, excluding any reserved VLAN IDs). Except for 1002-1005 which are reserved for E7 operation.
+
+        :param inner_tag_id: "inner"(C-TAG) Dot1q(802.1Q) VLAN IDs (2 to 4093, excluding any reserved VLAN IDs). Except for 1002-1005 which are reserved for E7 operation.
+
+        :param mcast_prof_id: Identifies an ID of a pre-defined global or local multicast profile (1 to 32). If provisioning as service not requiring mcast profile leave at default '0'. The CMS XML NBI may be used to provision services using local profile IDs. Previously, the CMS XML NBI accepted only global profile IDs.The local ID is specified using the syntax "local:X" where "X" is the local profile ID number. The local ID is specified using the syntax "local:X" where "X" is the local profile ID number.
+
+        :param pon_cos_id: Class of Service applied to the service:
+                             derived is the default behavior for services
+                            created with E7 R2.2 or later.
+                             cos-1 through cos-4 represents a default,
+                            system-defined aggregated CoS for an ONT
+                            (BE, AF1, AF2, EF) that are pre-assigned a
+                            class of service and the provisioned services
+                            are required to have a bandwidth profile that
+                            matches the class of service. Bandwidth is
+                            assigned as aggregated from the multiple
+                            services and mapped to the ONT. If the
+                            associated service-tag action was created with
+                            a software version earlier than E7 software
+                            release R2.2, the values of the selected
+                            system-defined cos (1-4) override the
+                            associated service-tag parameter selections.
+                             user-1 through user-4 represents the PON
+                            upstream profiles that specify the traffic class,
+                            DBA scheduling priority, and bandwidth limits
+                            for the service on the PON port.
+                             fixed is the behavior that is the same as a
+                            service created in a software version earlier
+                            than E7 software release R2.2.
+
+        :param us_cir_override: Overrides the provided bw_prof_id's upstream_CIR, Following the same syntax as bw_prof CIR provisioning.
+                                Specifies the committed minimum rate the ONT allows traffic to flow
+                                upstream. Where rates may be specified as follows:
+                                 In 64 kbps increments up to 2 Mbps
+                                 In 1 Mbps increments between 2 Mbps to 1000 Mbps
+                                 In 100 Mbps increments between 1 Gbps to 1.2 Gbps
+                                 0 kbps disables the meter
+                                Use "m" suffix for Mb/s or "g" for Gb/s in whole number increments.
+                                Note: 700GX ONTs can rate limit traffic to a maximum rate of 400
+                                Mbps. Setting the rate limit for values higher than 400 Mbps will
+                                disable the rate limiter.
+
+        :param us_pir_override: Overrides the provided bw_prof_id's upstream_PIR, Following the same syntax as bw_prof PIR provisioning.
+                                Specifies the un-guaranteed maximum rate for upstream traffic.
+                                Where rates may be specified as follows:
+                                 In 64 kbps increments up to 2 Mbps
+                                 In 1 Mbps increments between 2 Mbps to 1000 Mbps
+                                 0 kbps disables the meter
+                                Use "m" suffix for Mbps or "g" for Gbps in whole number increments.
+                                Note: 700GX ONTs can rate limit traffic to a maximum rate of 400
+                                Mbps. Setting the rate limit for values higher than 400 Mbps
+                                disables the rate limiter.
+
+        :param ds_pir_override: Overrides the provided bw_prof_id's downstream_PIR, Following the same syntax as bw_prof PIR provisioning.
+                                Specifies the maximum service bandwidth. Where rates may be
+                                specified as follows:
+                                 In 64 kbps increments up to 2 Mbps
+                                 In 1 Mbps increments between 2 Mbps to 1000 Mbps
+                                 In 100 Mbps increments between 1 Gbps to 2.5 Gbps
+                                 0 kbps disables the meter
+                                Use "m" suffix for Mbps or "g" for Gbps in whole number increments
+
+        :param hot_swap: expects ('true' or 'false')
+                            Provides a newly installed device (such as a modem or ONT) a new
+                            DHCP address when you hot swap it. That is, when the system detects
+                            a DHCP discover from a MAC address different than the one in the
+                            association table, it releases the old MAC address and immediately
+                            assigns an address to the new device.
+                            This behavior takes effect per VLAN per port. If there is more than one
+                            service on the same port sharing the same VLAN, they must use the
+                            same DHCP hot swap configuration (either all enabled or disabled).
+                            Note: The DHCP client must include option 61 in the DHCP packets for
+                            the DHCP lease to be released from the DHCP server.
+                            Note: DHCP hot swap is not supported for AE ONTs.
+
+        :param pppoe_force_discard: expects ('true' or 'false')
+                                    Discards any PPPoE frames received on an ONT port when the PPPoE
+                                    profile is set in the VLAN.
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
+        # TODO: IMPLEMENT PARAMETER CHECKING, MAKE SURE THE EXPECTED VALUES ARE PROVIDED
+        if mcast_prof_id == '0':
+            _mcast_prof = """<mcast-prof></mcast-prof>"""
+        else:
+            _mcast_prof = f"""<mcast-prof>
+                                 <type>McastProf</type>
+                                 <id>
+                                 <mcastprof>{mcast_prof_id}</mcastprof>
+                                 </id>
+                             </mcast-prof>"""
 
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                <soapenv:Body>
+                                    <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                        <edit-config>
+                                            <target>
+                                                <running/>
+                                            </target>
+                                            <config>
+                                                <top>
+                                                    <object operation="create" get-config="true">
+                                                        <type>EthSvc</type>
+                                                            <id>
+                                                                <ont>{ont_id}</ont>
+                                                                <ontslot>{ontslot}</ontslot>
+                                                                <ontethany>{ontethany}</ontethany>
+                                                                <ethsvc>{ethsvc}</ethsvc>
+                                                            </id>
+                                                            <admin>{admin_state}</admin>
+                                                            <descr>{descr}</descr>
+                                                            <tag-action>
+                                                                <type>SvcTagAction</type>
+                                                                <id>
+                                                                    <svctagaction>{svctagaction_id}</svctagaction>
+                                                                </id>
+                                                            </tag-action>
+                                                            <bw-prof>
+                                                                <type>BwProf</type>
+                                                                <id>
+                                                                    <bwprof>{bwprof_id}</bwprof>
+                                                                </id>
+                                                            </bw-prof>
+                                                            <out-tag>{out_tag_id}</out-tag>
+                                                            <in-tag>{inner_tag_id}</in-tag>
+                                                            {_mcast_prof}
+                                                            <pon-cos>{pon_cos_id}</pon-cos>
+                                                            <us-cir-override>{us_cir_override}</us-cir-override>
+                                                            <us-pir-override>{us_pir_override}</us-pir-override>
+                                                            <ds-pir-override>{ds_pir_override}</ds-pir-override>
+                                                            <hot-swap>{hot_swap}</hot-swap>
+                                                            <pppoe-force-discard>{pppoe_force_discard}</pppoe-force-discard>
+                                                    </object>
+                                                </top>
+                                            </config>
+                                        </edit-config>
+                                    </rpc>
+                                </soapenv:Body>
+                            </soapenv:Envelope>"""
+
+        if 'https' not in self.client_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
+            except requests.exceptions.Timeout as e:
+
+                raise e
+        else:
+            # TODO: will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
