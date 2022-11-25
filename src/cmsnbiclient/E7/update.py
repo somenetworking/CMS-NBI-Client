@@ -281,16 +281,53 @@ class Update():
                                 <soapenv:Body>
                                     <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
                                         <edit-config>
-                                        <target>
-                                        <running/>
-                                        </target>
+                                            <target>
+                                                <running/>
+                                            </target>
                                             <config>
                                                 <top>
-                                                    <object operation="merge" get-config="true">
-                                                        <type>Ont</type>
+                                                    <object operation="merge">
+                                                        <type>OntEthGe</type>
                                                         <id>
-                                                            <ont>{ont_id}</ont>
+                                                            <ont>1</ont>
+                                                            <ontslot>3</ontslot>
+                                                            <ontethge>1</ontethge>
                                                         </id>
+                                                        <intf></intf>
+                                                        <admin>disabled</admin>
+                                                        <subscr-id></subscr-id>
+                                                        <descr></descr>
+                                                        <gos>
+                                                            <type>OntEthPortGos</type>
+                                                            <id>
+                                                                <ontethportgos>1</ontethportgos>
+                                                            </id>
+                                                        </gos>
+                                                        <duplex>full</duplex>
+                                                        <sec>
+                                                            <type>EthSecProf</type>
+                                                            <id>
+                                                                <ethsecprof>1</ethsecprof>
+                                                            </id>
+                                                        </sec>
+                                                        <disable-on-batt>true</disable-on-batt>
+                                                        <link-oam-events>false</link-oam-events>
+                                                        <accept-link-oam-loopbacks>false</accept-link-oam-loopbacks>
+                                                        <dhcp-limit-override>none</dhcp-limit-override>
+                                                        <force-dot1x>none</force-dot1x>
+                                                        <role>uni</role>
+                                                        <pbit-map>
+                                                            <type>DscpMap</type>
+                                                            <id>
+                                                                <dscpmap>1</dscpmap>
+                                                            </id>
+                                                        </pbit-map>
+                                                        <speed>auto</speed>
+                                                        <poe-power-priority>medium</poe-power-priority>
+                                                        <poe-class-control>disabled</poe-class-control>
+                                                        <voice-policy-profile></voice-policy-profile>
+                                                        <ppte-power-control>false</ppte-power-control>
+                                                        <policing>disable</policing>
                                                     </object>
                                                 </top>
                                             </config>
