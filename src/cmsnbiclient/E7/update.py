@@ -335,3 +335,53 @@ class Update():
                                     </rpc>
                                     </soapenv:Body>
                                 </soapenv:Envelope>"""
+
+    def ont_ethsvc(self):
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                        <soapenv:Body>
+                                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                                <edit-config>
+                                                    <target>
+                                                        <running/>
+                                                    </target>
+                                                    <config>
+                                                        <top>
+                                                            <object operation="merge">
+                                                                <type>EthSvc</type>
+                                                                <id>
+                                                                    <ont>1</ont>
+                                                                    <ontslot>3</ontslot>
+                                                                    <ontethany>1</ontethany>
+                                                                    <ethsvc>1</ethsvc>
+                                                                </id>
+                                                                <admin>disabled</admin>
+                                                                <descr></descr>
+                                                                <tag-action>
+                                                                    <type>SvcTagAction</type>
+                                                                    <id>
+                                                                        <svctagaction>16</svctagaction>
+                                                                    </id>
+                                                                </tag-action>
+                                                                <bw-prof>
+                                                                    <type>BwProf</type>
+                                                                    <id>
+                                                                        <bwprof>6</bwprof>
+                                                                    </id>
+                                                                </bw-prof>
+                                                                <out-tag>none</out-tag>
+                                                                <in-tag>none</in-tag>
+                                                                <mcast-prof></mcast-prof>
+                                                                <pon-cos>derived</pon-cos>
+                                                                <us-cir-override>none</us-cir-override>
+                                                                <us-pir-override>none</us-pir-override>
+                                                                <ds-pir-override>none</ds-pir-override>
+                                                                <hot-swap>false</hot-swap>
+                                                                <pppoe-force-discard>false</pppoe-force-discard>
+                                                            </object>
+                                                        </top>
+                                                    </config>
+                                                </edit-config>
+                                            </rpc>
+                                            </soapenv:Body>
+                                        </soapenv:Envelope>"""
