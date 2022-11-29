@@ -219,7 +219,7 @@ class Update():
                             </rpc>
                             </soapenv:Body>
                         </soapenv:Envelope>"""
-
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
         if 'https' not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
@@ -240,7 +240,11 @@ class Update():
             else:
                 return response
 
-    def ont_geth(self, ont_id: str = '', ontethge: str = ''):
+    def ont_geth(self, ont_id: str = '', ontethge: str = '', admin_state: str = '', subscr_id: str = '',
+                descr: str = '', ontethportgos: str = '', duplex: str = '', ethsecprof: str = '', disable_on_batt: str = '',
+                link_oam_events: str = '', accept_link_oam_loopbacks: str = '', dhcp_limit_override: str = '', force_dot1x: str = '',
+                role: str = '', dscpmap: str = '', speed: str = '', poe_power_priority: str = '', poe_class_control: str = '',
+                voice_policy_profile: str = '', ppte_power_control: str = '', policing: str = ''):
         """
         Description
         -----------
@@ -252,11 +256,133 @@ class Update():
 
         :param ontethge: Identifies the ONT-GE port number (1 to 8).
 
+        :param admin_state: Administrative state of the ONT-GE port, valid values are [disabled,enabled,enabled-no-alarms]
+
+        :param subscr_id: Identifies the char(32) string identifying the subscriber
+
+        :param descr: Identifies the char(48) string identifying the port description
+
+        :param ontethportgos: A numeric index value uniquely identifying the Ethernet GoS profile [1-10].
+                              Grade-of-Service (GOS) profiles that specify reporting
+                              thresholds for certain monitored attributes. For example, any time a particular count exceeds
+                              a specified threshold within a certain period (either a 15-minute or one-day period), a
+                              threshold-crossing alert is generated.
+
+        :param duplex: Duplex mode for an Ethernet port [Full, Half]
+
+        :param ethsecprof: Identifies the global Ethernet Security profile ID (1 to 16).
+                           Note: The E7 implementation of security profiles applies to non-TLAN services only. For
+                           TLAN services, the L2CP Filter parameter must be set to all-tunnel
+
+        :param disable_on_batt:Identifies the port operational state when the ONT is operating on battery backup power: ['true' or 'false']
+
+        :param link_oam_events: Identifies whether to enable OAM event monitoring: ['true' or 'false']
+
+        :param accept_link_oam_loopbacks:Identifies whether the port accepts or rejects 802.3ah frames sent by the host: ['true' or 'false']
+
+        :param dhcp_limit_override: To allow an override of the DHCP Lease Limit specified in a security profile
+                                    applied to a port. This allows the same security profile to be reused and also
+                                    allows the required DOCSIS provisioning where the lease limit is specified
+                                    individually on the port on which the new service will be added.
+                                    ['none','0-255'] 
+
+        :param force_dot1x: An 802.1x supplicant attribute to force the supplicant to be unauthorized or
+                            authorized until the force attribute is set to none. 
+                            ['none', 'true', 'false']
+
+        :param role:    Expects ['uni' or 'inni']
+                        For TR-167 devices where the ONU UNI port is a single UNI port attached to a
+                        trusted device. Role change requires that you delete and recreate any services
+                        provisioned on the port.
+                        uni - the ONT port will be facing untrusted subscriber equipment (for example
+                        RG, PC, STB).
+                        inni - the ONT port will be facing G.fast nodes where the following behavior
+                        occurs:
+                         Provisioning of the MVR VLAN on the INNI port is allowed. IGMP is carried
+                        upstream on their own unicast gemport/VLAN used for multicast flows.
+                         When a packet contains option 82, it is passed through intact.
+                        Note: The inni role only applies to ONT Gigabit Ethernet ports, ONT Fast
+                        Ethernet ports, and ONT HPNA Ethernet ports. This attribute can be changed
+                        only when there is no Ethernet service currently provisioned on the port. Only
+                        one single video VLAN per INNI port is supported. One PPPoE session per
+                        G.fast node port. Four DHCP sessions per G.fast node port
+        
+        :param dscpmap:  identifies the global DSCP Map profile ID (1 to 10). 
+
+        :param speed: Expects ['auto', '1000'] Identifies the data rate of the Ethernet port, setting to 1000 will disable auto negotiation
+
+        :param poe_power_priority:  The ports can be prioritized ['low', 'medium', 'high'] for Power over Ethernet (PoE).
+                                    If there is not enough power available to source all ports, the ONT drops the
+                                    lower priority ports first.
+
+        :param poe_class_control:   Expects ['enabled' or 'disabled']
+                                    The port can be classified to the type of Powered Device (PD) that will be
+                                    connected to the port. Different classes of PD require different amounts of
+                                    power.
+
+        :param voice_policy_profile: TODO: Research correct voice policy method as im not finding anything online for the correct formating
+
+        :param ppte_power_control:  Expects ['true', 'false']
+                                    Enables or disables Power over Ethernet (PoE) on the port.
+                                    GPON will implicitly enable Link Layer Discovery Protocol (LLDP) on the ONT
+                                    when either PoE is enabled or when the Voice Policy is defined.
+
+
+        :param policing: expects ['enable', 'disable']  
+                        Ingress rate limiting is sometimes called traffic policing because it ensures ingress traffic
+                        does not exceed a specified bit rate, keeping a subscriber from exceeding their data rate
+                        contract. Rate limiting applies to traffic entering an E-Series network from a downstream
+                        device
+
         :raise:
             ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
 
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
+
+         # using change_var as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
+        # before using xmltodict.unparse to convert it to a xml str
+        par_inputs = vars()
+
+        if isinstance(par_inputs['ont_id'], str):
+            if par_inputs['ont_id'].isdigit and not par_inputs['ont_id'] == '0':
+                pass
+            else:
+                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000""")
+        # APPLYING STRUCTURE TO THE PROVIDED PARAMETERS BEFORE PARSING, THIS IS DESIGN SO XMLTODICT CAN UNPARSE THE DICT INTO THE CORRECT XML FORMAT
+        change_var = {'accept-link-oam-loopbacks': par_inputs['accept_link_oam_loopbacks'],
+                    'admin': par_inputs['admin_state'],
+                    'descr': par_inputs['descr'],
+                    'dhcp-limit-override': par_inputs['dhcp_limit_override'],
+                    'disable-on-batt': par_inputs['disable_on_batt'],
+                    'duplex': par_inputs['duplex'],
+                    'force-dot1x': par_inputs['force_dot1x'],
+                    'gos': {'id': {'ontethportgos': par_inputs['ontethportgos']}, 'type': 'OntEthPortGos'},
+                    'link-oam-events': par_inputs['link_oam_events'],
+                    'pbit-map': {'id': {'dscpmap': par_inputs['dscpmap']}, 'type': 'DscpMap'},
+                    'poe-class-control': par_inputs['poe_class_control'],
+                    'poe-power-priority': par_inputs['poe_power_priority'],
+                    'policing':  par_inputs['policing'],
+                    'ppte-power-control': par_inputs['ppte_power_control'],
+                    'role': par_inputs['role'],
+                    'sec': {'id': {'ethsecprof': par_inputs['ethsecprof']}, 'type': 'EthSecProf'},
+                    'speed': par_inputs['speed'],
+                    'subscr-id': par_inputs['subscr-id']}
+        # TODO: Research correct voice policy method as im not finding anything online for the correct formating
+        # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
+        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
+
+        # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
+        if not pydash.objects.get('gos.id.ontethportgos', change_var):
+            change_var.pop('gos')
+        if not pydash.objects.get('pbit-map.id.dscpmap', change_var):
+            change_var.pop('pbit-map')
+        if not pydash.objects.get('sec.id.ethsecprof', change_var):
+            change_var.pop('sec')
+        # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
+        
+        chang_xml = xmltodict.unparse(change_var, full_document=False)
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                                 <soapenv:Body>
@@ -270,45 +396,11 @@ class Update():
                                                     <object operation="merge">
                                                         <type>OntEthGe</type>
                                                         <id>
-                                                            <ont>1</ont>
-                                                            <ontslot>3</ontslot>
-                                                            <ontethge>1</ontethge>
+                                                            <ont>{ont_id}</ont>
+                                                            <ontslot>{ontslot}</ontslot>
+                                                            <ontethge>{ontethge}</ontethge>
                                                         </id>
-                                                        <intf></intf>
-                                                        <admin>disabled</admin>
-                                                        <subscr-id></subscr-id>
-                                                        <descr></descr>
-                                                        <gos>
-                                                            <type>OntEthPortGos</type>
-                                                            <id>
-                                                                <ontethportgos>1</ontethportgos>
-                                                            </id>
-                                                        </gos>
-                                                        <duplex>full</duplex>
-                                                        <sec>
-                                                            <type>EthSecProf</type>
-                                                            <id>
-                                                                <ethsecprof>1</ethsecprof>
-                                                            </id>
-                                                        </sec>
-                                                        <disable-on-batt>true</disable-on-batt>
-                                                        <link-oam-events>false</link-oam-events>
-                                                        <accept-link-oam-loopbacks>false</accept-link-oam-loopbacks>
-                                                        <dhcp-limit-override>none</dhcp-limit-override>
-                                                        <force-dot1x>none</force-dot1x>
-                                                        <role>uni</role>
-                                                        <pbit-map>
-                                                            <type>DscpMap</type>
-                                                            <id>
-                                                                <dscpmap>1</dscpmap>
-                                                            </id>
-                                                        </pbit-map>
-                                                        <speed>auto</speed>
-                                                        <poe-power-priority>medium</poe-power-priority>
-                                                        <poe-class-control>disabled</poe-class-control>
-                                                        <voice-policy-profile></voice-policy-profile>
-                                                        <ppte-power-control>false</ppte-power-control>
-                                                        <policing>disable</policing>
+                                                        {chang_xml}
                                                     </object>
                                                 </top>
                                             </config>
@@ -316,6 +408,26 @@ class Update():
                                     </rpc>
                                     </soapenv:Body>
                                 </soapenv:Envelope>"""
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
+        if 'https' not in self.client_object.cms_netconf_url[:5]:
+            try:
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
+            except requests.exceptions.Timeout as e:
+                raise e
+        else:
+            # TODO:Need to implement HTTPS handling as the destination port will be different than the http port
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.Models.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
 
     def ont_ethsvc(self, ont_id: str = '', ontslot: str = '', ontethany: str = '', ethsvc: str = '', admin_state: str = '', descr: str = '', svctagaction_id: str = '', bwprof_id: str = '', 
                     out_tag: str = '', inner_tag: str = '', mcast_prof_id: str = '', pon_cos: str = '', us_cir_override: str = '', us_pir_override: str = '', ds_pir_override: str = '', hot_swap: str = '', pppoe_force_discard: str = ''):
@@ -489,7 +601,7 @@ class Update():
                                             </soapenv:Body>
                                         </soapenv:Envelope>"""
         
-        
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
         if 'https' not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
