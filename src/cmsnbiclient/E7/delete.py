@@ -231,7 +231,7 @@ class Delete():
             else:
                 return response
 
-    def vlanmem(self, vlan_id='', vlan_member_id='', force='false'):
+    def vlanmem(self, vlan_id: str = '', vlan_member_id: str = '', force: str = 'false'):
         """
         Description
         -----------
@@ -286,6 +286,76 @@ class Delete():
                 raise e
         else:
             # will need to research how to implement https connection with request library
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
+                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+                return resp_dict
+            else:
+                return response
+
+    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1'):
+        """
+        Description
+        -----------
+        function ethsvc_ont() performs a http/xml deletion query for the provided network_nm(e7_node) requesting an <ethsvc> object be deleted with the provided details
+
+        Attributes
+        ----------
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000).
+
+        :param ontslot: Identifies the ONT port type using one of the following {"Gigabit Ethernet port ": "3", "HPNA Ethernet port": "4", "Fast Ethernet port": "5" }
+
+        :param ontethany: Identifies the ONT port number (1 to 8).
+
+        :param ethsvc: Identifies the data service (1 to 12; typically 1 to 8 for data service).
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                <soapenv:Body>
+                                    <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                        <edit-config>
+                                            <target>
+                                                <running/>
+                                            </target>
+                                            <config>
+                                                <top>
+                                                    <object operation="delete">
+                                                        <type>EthSvc</type>
+                                                        <id>
+                                                            <ont>{ont_id}</ont>
+                                                            <ontslot>{ontslot}</ontslot>
+                                                            <ontethany>{ontethany}</ontethany>
+                                                            <ethsvc>{ethsvc}</ethsvc>
+                                                        </id>
+                                                    </object>
+                                                </top>
+                                            </config>
+                                        </edit-config>
+                                    </rpc>
+                                </soapenv:Body>
+                            </soapenv:Envelope>"""
+
+        if 'https' not in self.client_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
+            except requests.exceptions.Timeout as e:
+
+                raise e
+        else:
+            # TODO: will need to research how to implement https connection with request library
             pass
 
         if response.status_code != 200:

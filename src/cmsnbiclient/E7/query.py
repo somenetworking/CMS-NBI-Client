@@ -1209,6 +1209,138 @@ class Query():
             else:
                 return response
 
+    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1'):
+        """
+        Description
+        -----------
+        function ethsvc_ont() performs a http/xml  query for the provided network_nm(e7_node) requesting the current data for the specified ethsvc
+
+        Attributes
+        ----------
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000).
+
+        :param ontslot: Identifies the ONT port type using one of the following {"Gigabit Ethernet port ": "3", "HPNA Ethernet port": "4", "Fast Ethernet port": "5" }
+
+        :param ontethany: Identifies the ONT port number (1 to 8).
+
+        :param ethsvc: Identifies the data service (1 to 12; typically 1 to 8 for data service).
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                <soapenv:Body>
+                                    <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                        <get-config>
+                                            <source>
+                                                <running/>
+                                            </source>
+                                        <filter type="subtree">
+                                            <top>
+                                                <object>
+                                                    <type>EthSvc</type>
+                                                    <id>
+                                                        <ont>{ont_id}</ont>
+                                                        <ontslot>{ontslot}</ontslot>
+                                                        <ontethany>{ontethany}</ontethany>
+                                                        <ethsvc>{ethsvc}</ethsvc>
+                                                    </id>
+                                                </object>
+                                            </top>
+                                        </filter>
+                                        </get-config>
+                                    </rpc>
+                                </soapenv:Body>
+                               </soapenv:Envelope>"""
+
+        if 'https' not in self.client_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
+            except requests.exceptions.Timeout as e:
+
+                raise e
+        else:
+            # TODO: IMPLEMENT HTTPS HANDLING
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
+
+    def ont_geth(self, ont_id: str = '', ontethge: str = '1'):
+        """
+        Description
+        -----------
+        function ont_geth() performs a http/xml  query for the provided network_nm(e7_node) requesting the current data for the specified ontethge
+
+        Attributes
+        ----------
+        :param ont_id: Identifies the ONT by its E7 scope ID (1 to 64000000).
+
+        :param ontethge: Identifies the ONT-GE port number (1 to 8).
+
+        :raise:
+            ConnectTimeout: Will be raised if the http(s) connection between the client and server times-out
+
+        :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
+        """
+
+        payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+                                        <soapenv:Body>
+                                            <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
+                                                <get-config>
+                                                    <source>
+                                                        <running/>
+                                                    </source>
+                                                <filter type="subtree">
+                                                    <top>
+                                                        <object>
+                                                            <type>OntEthGe</type>
+                                                            <id>
+                                                                <ont>{ont_id}</ont>
+                                                                <ontslot>3</ontslot>
+                                                                <ontethge>{ontethge}</ontethge>
+                                                            </id>
+                                                        </object>
+                                                    </top>
+                                                </filter>
+                                                </get-config>
+                                            </rpc>
+                                        </soapenv:Body>
+                                       </soapenv:Envelope>"""
+
+        if 'https' not in self.client_object.cms_netconf_url:
+            try:
+                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
+                                         timeout=self.http_timeout)
+            except requests.exceptions.Timeout as e:
+
+                raise e
+        else:
+            # TODO: IMPLEMENT HTTPS HANDLING
+            pass
+
+        if response.status_code != 200:
+            # if the response code is not 200 FALSE and the request.response object is returned.
+            return response
+
+        else:
+            resp_dict = xmltodict.parse(response.content)
+            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
+                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            else:
+                return response
+
     def show_ont(self, action_args={' ': ''}, after_filter={' ': ''}):
         """
         Description
